@@ -19,18 +19,77 @@ export const drawPlotDimensions = (
   dimensions: { width: number; length: number },
   gridSize: number
 ) => {
+  // Set text properties
   ctx.fillStyle = "#2C3E50";
-  ctx.font = "12px Inter";
+  ctx.font = "bold 14px Inter";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  // Draw width dimension
+  const widthText = `${dimensions.width} ft`;
   ctx.fillText(
-    `${dimensions.width} ft`,
-    dimensions.width * gridSize / 2 - 20,
-    -5
+    widthText,
+    (dimensions.width * gridSize) / 2,
+    -20
   );
+
+  // Draw length dimension
+  ctx.save();
+  ctx.translate(-20, (dimensions.length * gridSize) / 2);
+  ctx.rotate(-Math.PI / 2);
   ctx.fillText(
     `${dimensions.length} ft`,
-    -25,
-    dimensions.length * gridSize / 2
+    0,
+    0
   );
+  ctx.restore();
+
+  // Draw dimension lines and arrows
+  const arrowSize = 5;
+  
+  // Width arrows
+  ctx.beginPath();
+  ctx.moveTo(-5, -10);
+  ctx.lineTo(dimensions.width * gridSize + 5, -10);
+  ctx.strokeStyle = "#2C3E50";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Draw arrowheads for width
+  ctx.beginPath();
+  ctx.moveTo(-5, -10 - arrowSize);
+  ctx.lineTo(-5, -10 + arrowSize);
+  ctx.lineTo(-10, -10);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(dimensions.width * gridSize + 5, -10 - arrowSize);
+  ctx.lineTo(dimensions.width * gridSize + 5, -10 + arrowSize);
+  ctx.lineTo(dimensions.width * gridSize + 10, -10);
+  ctx.closePath();
+  ctx.fill();
+
+  // Length arrows
+  ctx.beginPath();
+  ctx.moveTo(-10, -5);
+  ctx.lineTo(-10, dimensions.length * gridSize + 5);
+  ctx.stroke();
+
+  // Draw arrowheads for length
+  ctx.beginPath();
+  ctx.moveTo(-10 - arrowSize, -5);
+  ctx.lineTo(-10 + arrowSize, -5);
+  ctx.lineTo(-10, -10);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(-10 - arrowSize, dimensions.length * gridSize + 5);
+  ctx.lineTo(-10 + arrowSize, dimensions.length * gridSize + 5);
+  ctx.lineTo(-10, dimensions.length * gridSize + 10);
+  ctx.closePath();
+  ctx.fill();
 };
 
 export const drawRoomHandles = (
