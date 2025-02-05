@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { Room } from './types';
 import { ROOM_COLORS } from './constants';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 interface ThreeDCanvasProps {
   rooms: Room[];
