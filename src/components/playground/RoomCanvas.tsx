@@ -15,6 +15,7 @@ interface RoomCanvasProps {
   rotation: number;
   showPlot?: boolean;
   components: Component[];
+  onComponentMove?: (component: Component, newX: number, newY: number) => void;
 }
 
 export const RoomCanvas = ({
@@ -28,8 +29,10 @@ export const RoomCanvas = ({
   rotation,
   showPlot = false,
   components,
+  onComponentMove,
 }: RoomCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const draggedComponentRef = useRef<{ component: Component; offsetX: number; offsetY: number } | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -115,6 +118,40 @@ export const RoomCanvas = ({
     ctx.restore();
   }, [rooms, selectedRoom, dimensions, rotation, showPlot, components]);
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = e.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left - 50;
+    const y = e.clientY - rect.top - 50;
+    const gridSize = 20;
+
+    // Check if clicking on a component
+    const clickedComponent = components.find(component => {
+      const componentX = component.x;
+      const componentY = component.y;
+      const componentWidth = component.width * gridSize;
+      const componentLength = component.length * gridSize;
+
+      return (
+        x >= componentX &&
+        x <= componentX + componentWidth &&
+        y >= componentY &&
+        y <= componentY + componentLength
+      );
+    });
+
+    if (clickedComponent) {
+      draggedComponentRef.current = {
+        component: clickedComponent,
+        offsetX: x - clickedComponent.x,
+        offsetY: y - clickedComponent.y
+      };
+      canvas.style.cursor = 'move';
+    } else {
+      onMouseDown(e);
+    }
+  };
+
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
@@ -122,36 +159,42 @@ export const RoomCanvas = ({
     const y = e.clientY - rect.top - 50;
     const gridSize = 20;
 
-    if (selectedRoom) {
-      const roomX = selectedRoom.x * gridSize;
-      const roomY = selectedRoom.y * gridSize;
-      const roomWidth = selectedRoom.width * gridSize;
-      const roomLength = selectedRoom.length * gridSize;
-      const handleSize = 8;
+    if (draggedComponentRef.current && onComponentMove) {
+      const { component, offsetX, offsetY } = draggedComponentRef.current;
+      const newX = Math.round((x - offsetX) / gridSize) * gridSize;
+      const newY = Math.round((y - offsetY) / gridSize) * gridSize;
+      onComponentMove(component, newX, newY);
+      return;
+    }
 
-      // Check if near edges
-      const nearLeftEdge = Math.abs(x - roomX) <= handleSize;
-      const nearRightEdge = Math.abs(x - (roomX + roomWidth)) <= handleSize;
-      const nearTopEdge = Math.abs(y - roomY) <= handleSize;
-      const nearBottomEdge = Math.abs(y - (roomY + roomLength)) <= handleSize;
+    // Check if hovering over a component
+    const hoveringComponent = components.some(component => {
+      const componentX = component.x;
+      const componentY = component.y;
+      const componentWidth = component.width * gridSize;
+      const componentLength = component.length * gridSize;
 
-      // Set cursor based on position
-      if ((nearLeftEdge && nearTopEdge) || (nearRightEdge && nearBottomEdge)) {
-        canvas.style.cursor = 'nwse-resize';
-      } else if ((nearRightEdge && nearTopEdge) || (nearLeftEdge && nearBottomEdge)) {
-        canvas.style.cursor = 'nesw-resize';
-      } else if (nearLeftEdge || nearRightEdge) {
-        canvas.style.cursor = 'ew-resize';
-      } else if (nearTopEdge || nearBottomEdge) {
-        canvas.style.cursor = 'ns-resize';
-      } else if (x >= roomX && x <= roomX + roomWidth && y >= roomY && y <= roomY + roomLength) {
-        canvas.style.cursor = 'move';
-      } else {
-        canvas.style.cursor = 'default';
-      }
+      return (
+        x >= componentX &&
+        x <= componentX + componentWidth &&
+        y >= componentY &&
+        y <= componentY + componentLength
+      );
+    });
+
+    if (hoveringComponent) {
+      canvas.style.cursor = 'move';
+    } else {
+      canvas.style.cursor = 'default';
     }
 
     onMouseMove(e);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    draggedComponentRef.current = null;
+    e.currentTarget.style.cursor = 'default';
+    onMouseUp();
   };
 
   return (
@@ -159,13 +202,11 @@ export const RoomCanvas = ({
       ref={canvasRef}
       className="absolute inset-0"
       style={{ touchAction: 'none' }}
-      onMouseDown={onMouseDown}
+      onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onMouseUp={(e) => {
-        e.currentTarget.style.cursor = 'default';
-        onMouseUp();
-      }}
+      onMouseUp={handleMouseUp}
       onMouseLeave={(e) => {
+        draggedComponentRef.current = null;
         e.currentTarget.style.cursor = 'default';
         onMouseLeave();
       }}

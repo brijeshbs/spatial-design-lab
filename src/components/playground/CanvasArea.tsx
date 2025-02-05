@@ -37,6 +37,17 @@ export const CanvasArea = ({
   const [isPanning, setIsPanning] = useState(false);
   const [startPanPosition, setStartPanPosition] = useState({ x: 0, y: 0 });
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
+  const [localComponents, setLocalComponents] = useState<Component[]>(components);
+
+  const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {
+    setLocalComponents(prevComponents =>
+      prevComponents.map(c =>
+        c.id === component.id
+          ? { ...c, x: newX, y: newY }
+          : c
+      )
+    );
+  }, []);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -105,7 +116,8 @@ export const CanvasArea = ({
               onMouseLeave={onMouseLeave}
               rotation={rotation}
               showPlot={showPlot}
-              components={components}
+              components={localComponents}
+              onComponentMove={handleComponentMove}
             />
           </div>
           <DragDropHandler
@@ -119,7 +131,7 @@ export const CanvasArea = ({
           rooms={rooms}
           selectedRoom={selectedRoom}
           dimensions={dimensions}
-          components={components}
+          components={localComponents}
         />
       )}
       
