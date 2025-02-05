@@ -34,8 +34,9 @@ export const RoomCanvas = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = Math.max(800, dimensions.width * 20 + 100);
-    canvas.height = Math.max(600, dimensions.length * 20 + 100);
+    // Set canvas size to match window size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const gridSize = 20;
@@ -77,10 +78,11 @@ export const RoomCanvas = ({
       }
     });
 
+    // Draw compass with fixed position
     const compass = new Compass({ 
       size: 60, 
-      x: canvas.width - 80,
-      y: canvas.height - 80,
+      x: window.innerWidth - 100,
+      y: window.innerHeight - 100,
       rotation
     });
     compass.draw(ctx);
@@ -90,13 +92,8 @@ export const RoomCanvas = ({
   return (
     <canvas
       ref={canvasRef}
-      width={800}
-      height={600}
-      className="absolute"
+      className="absolute inset-0"
       style={{
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
         touchAction: 'none'
       }}
       onMouseDown={onMouseDown}
