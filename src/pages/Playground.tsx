@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { InfiniteGrid } from "@/components/playground/InfiniteGrid";
-import { RoomCanvas } from "@/components/playground/RoomCanvas";
-import { ROOM_TYPES } from "@/components/playground/constants";
 import { LeftSidebar } from "@/components/playground/LeftSidebar";
 import { RightSidebar } from "@/components/playground/RightSidebar";
+import { CanvasArea } from "@/components/playground/CanvasArea";
 import { useRoomManagement } from "@/hooks/useRoomManagement";
 import type { Room } from "@/components/playground/types";
+import { ROOM_TYPES } from "@/components/playground/constants";
 
 const Playground = () => {
   const [dimensions, setDimensions] = useState({ width: 30, length: 40 });
@@ -175,21 +174,15 @@ const Playground = () => {
 
   return (
     <div className="absolute inset-0 overflow-visible">
-      <InfiniteGrid width={window.innerWidth} height={window.innerHeight} />
-      
-      <div className="absolute inset-0 overflow-visible pointer-events-none">
-        <div className="pointer-events-auto">
-          <RoomCanvas
-            rooms={rooms}
-            selectedRoom={selectedRoom}
-            dimensions={dimensions}
-            onMouseDown={handleCanvasMouseDown}
-            onMouseMove={handleCanvasMouseMove}
-            onMouseUp={handleCanvasMouseUp}
-            onMouseLeave={handleCanvasMouseUp}
-          />
-        </div>
-      </div>
+      <CanvasArea
+        rooms={rooms}
+        selectedRoom={selectedRoom}
+        dimensions={dimensions}
+        onMouseDown={handleCanvasMouseDown}
+        onMouseMove={handleCanvasMouseMove}
+        onMouseUp={handleCanvasMouseUp}
+        onMouseLeave={handleCanvasMouseUp}
+      />
 
       <LeftSidebar
         showLeftSidebar={showLeftSidebar}
