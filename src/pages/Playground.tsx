@@ -242,7 +242,7 @@ const Playground = () => {
       )}
 
       {/* Main Canvas Area */}
-      <div className="flex-1 p-8">
+      <div className="flex items-center justify-center min-h-screen p-8">
         <div className="bg-white rounded-lg shadow-lg p-4">
           <RoomCanvas
             rooms={rooms}

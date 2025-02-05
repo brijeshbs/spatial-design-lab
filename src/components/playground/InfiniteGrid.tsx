@@ -17,7 +17,7 @@ export const InfiniteGrid = ({ width, height }: InfiniteGridProps) => {
 
     const drawGrid = () => {
       // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, width, height);
 
       // Draw infinite grid background
       const gridSize = 20;
@@ -29,18 +29,18 @@ export const InfiniteGrid = ({ width, height }: InfiniteGridProps) => {
       const offsetY = (window.scrollY % gridSize);
 
       // Draw vertical lines
-      for (let x = -offsetX; x <= canvas.width + gridSize; x += gridSize) {
+      for (let x = -offsetX; x <= width + gridSize; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.lineTo(x, height);
         ctx.stroke();
       }
 
       // Draw horizontal lines
-      for (let y = -offsetY; y <= canvas.height + gridSize; y += gridSize) {
+      for (let y = -offsetY; y <= height + gridSize; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+        ctx.lineTo(width, y);
         ctx.stroke();
       }
     };
@@ -54,18 +54,20 @@ export const InfiniteGrid = ({ width, height }: InfiniteGridProps) => {
     };
 
     window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', drawGrid);
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', drawGrid);
     };
-  }, []);
+  }, [width, height]);
 
   return (
     <canvas
       ref={canvasRef}
       width={width}
       height={height}
-      className="absolute top-0 left-0 -z-10"
+      className="fixed top-0 left-0 w-full h-full -z-10"
     />
   );
 };
