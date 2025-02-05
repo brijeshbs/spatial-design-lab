@@ -7,6 +7,7 @@ import { CanvasControls } from "./CanvasControls";
 import { CanvasViewport } from "./canvas/CanvasViewport";
 import { TransformableCanvas } from "./canvas/TransformableCanvas";
 import { useCanvasControls } from "./canvas/useCanvasControls";
+import { useComponentState } from "@/hooks/useComponentState";
 
 interface CanvasAreaProps {
   rooms: Room[];
@@ -17,8 +18,6 @@ interface CanvasAreaProps {
   onMouseUp: () => void;
   onMouseLeave: () => void;
   showPlot?: boolean;
-  components: Component[];
-  onComponentAdd?: (component: Component) => void;
 }
 
 export const CanvasArea = ({
@@ -30,8 +29,6 @@ export const CanvasArea = ({
   onMouseUp,
   onMouseLeave,
   showPlot = false,
-  components,
-  onComponentAdd,
 }: CanvasAreaProps) => {
   const [rotation, setRotation] = useState(0);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
@@ -46,13 +43,15 @@ export const CanvasArea = ({
     handlePanEnd,
   } = useCanvasControls();
 
+  const {
+    components,
+    addComponent,
+    updateComponentPosition,
+  } = useComponentState();
+
   const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {
-    if (onComponentAdd) {
-      // Create a new component with updated position
-      const updatedComponent = { ...component, x: newX, y: newY };
-      onComponentAdd(updatedComponent);
-    }
-  }, [onComponentAdd]);
+    updateComponentPosition(component.id, newX, newY);
+  }, [updateComponentPosition]);
 
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     handlePanStart(e);
@@ -98,7 +97,7 @@ export const CanvasArea = ({
           <DragDropHandler
             position={position}
             scale={scale}
-            onComponentAdd={onComponentAdd}
+            onComponentAdd={addComponent}
           />
         </>
       ) : (
