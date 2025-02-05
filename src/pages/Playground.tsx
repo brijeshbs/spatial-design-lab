@@ -4,7 +4,7 @@ import { LeftSidebar } from "@/components/playground/LeftSidebar";
 import { RightSidebar } from "@/components/playground/RightSidebar";
 import { CanvasArea } from "@/components/playground/CanvasArea";
 import { useRoomManagement } from "@/hooks/useRoomManagement";
-import type { Room, Component } from "@/components/playground/types";
+import type { Room } from "@/components/playground/types";
 import { ROOM_TYPES } from "@/components/playground/constants";
 
 const Playground = () => {
@@ -12,7 +12,6 @@ const Playground = () => {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [showPlot, setShowPlot] = useState(false);
-  const [components, setComponents] = useState<Component[]>([]);
 
   const {
     rooms,
@@ -25,10 +24,6 @@ const Playground = () => {
     handleRoomUpdate,
   } = useRoomManagement(dimensions);
 
-  const handleComponentAdd = (component: Component) => {
-    setComponents(prev => [...prev, component]);
-  };
-
   const findValidPosition = (
     room: { width: number; length: number },
     existingRooms: Room[],
@@ -36,11 +31,9 @@ const Playground = () => {
     maxAttempts: number = 50
   ): { x: number; y: number } | null => {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      // Generate random position within plot boundaries
       const x = Math.floor(Math.random() * (plotDimensions.width - room.width));
       const y = Math.floor(Math.random() * (plotDimensions.length - room.length));
 
-      // Check if this position overlaps with any existing room
       const hasOverlap = existingRooms.some(existingRoom => {
         return !(
           x + room.width <= existingRoom.x ||
@@ -54,7 +47,7 @@ const Playground = () => {
         return { x, y };
       }
     }
-    return null; // Could not find valid position
+    return null;
   };
 
   const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
@@ -102,15 +95,13 @@ const Playground = () => {
         onMouseUp={handleCanvasMouseUp}
         onMouseLeave={handleCanvasMouseUp}
         showPlot={showPlot}
-        components={components}
-        onComponentAdd={handleComponentAdd}
       />
 
       <LeftSidebar
         showLeftSidebar={showLeftSidebar}
         setShowLeftSidebar={setShowLeftSidebar}
         onGenerate={generateInitialLayout}
-        onComponentSelect={handleComponentAdd}
+        onComponentSelect={() => {}}
       />
 
       <RightSidebar
