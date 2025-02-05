@@ -41,12 +41,11 @@ export const CanvasArea = ({
   const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {
     if (onComponentAdd) {
       const updatedComponent = { ...component, x: newX, y: newY };
-      // Create a new array with all components except the one being moved
-      const otherComponents = components.filter(c => c.id !== component.id);
-      // Add the updated component
-      onComponentAdd(updatedComponent);
-      // Update all other components to maintain their positions
-      otherComponents.forEach(c => onComponentAdd(c));
+      const updatedComponents = components.map(c => 
+        c.id === component.id ? updatedComponent : c
+      );
+      // Update all components at once to maintain their positions
+      updatedComponents.forEach(c => onComponentAdd(c));
     }
   }, [components, onComponentAdd]);
 
