@@ -40,13 +40,17 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
       return;
     }
 
+    // Generate random position within visible area
+    const randomX = Math.floor(Math.random() * 400); // Random X between 0 and 400
+    const randomY = Math.floor(Math.random() * 400); // Random Y between 0 and 400
+
     const newComponent: Component = {
       id: Math.random().toString(36).substr(2, 9),
       type,
       width: componentSpec.width,
       length: componentSpec.length,
-      x: 200,
-      y: 200,
+      x: randomX,
+      y: randomY,
       rotation: 0,
     };
 
