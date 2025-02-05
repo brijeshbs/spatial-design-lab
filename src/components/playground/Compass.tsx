@@ -14,10 +14,10 @@ export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
   };
 
   return (
-    <div className="relative" style={{ width: size * 2.5, height: size * 2.5 }}>
+    <div className="relative flex items-center justify-center gap-4" style={{ width: size * 2.5, height: size * 2.5 }}>
       <button
         onClick={handleRotateLeft}
-        className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-[#6366F1] text-white flex items-center justify-center hover:bg-[#4F46E5] transition-colors shadow-lg"
+        className="w-12 h-12 rounded-full bg-[#6366F1] text-white flex items-center justify-center hover:bg-[#4F46E5] transition-colors shadow-lg"
         aria-label="Rotate Left"
       >
         <svg 
@@ -37,7 +37,7 @@ export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
       </button>
 
       <div 
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+        className="relative"
         style={{ 
           width: size * 1.5, 
           height: size * 1.5,
@@ -61,7 +61,7 @@ export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
 
       <button
         onClick={handleRotateRight}
-        className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-[#6366F1] text-white flex items-center justify-center hover:bg-[#4F46E5] transition-colors shadow-lg"
+        className="w-12 h-12 rounded-full bg-[#6366F1] text-white flex items-center justify-center hover:bg-[#4F46E5] transition-colors shadow-lg"
         aria-label="Rotate Right"
       >
         <svg 
