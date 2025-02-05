@@ -7,65 +7,11 @@ interface ComponentRendererProps {
   component: Component;
 }
 
-type ThreeDObject = THREE.Mesh | THREE.Group;
-
-const createFurnitureMesh = (type: string, width: number, length: number): ThreeDObject => {
+const createFurnitureMesh = (type: string, width: number, length: number): THREE.Mesh | THREE.Group => {
   const componentConfig = COMPONENTS[type as keyof typeof COMPONENTS];
-  const height = 1; // Default height for 3D objects
+  const height = type === 'Wall' ? 2.5 : 1; // Walls are taller than furniture
 
   switch (type) {
-    case "Ceiling Fan": {
-      const group = new THREE.Group();
-      
-      // Base
-      const base = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.2, 0.2, 0.1, 32),
-        new THREE.MeshStandardMaterial({ color: componentConfig.color })
-      );
-      group.add(base);
-
-      // Blades
-      for (let i = 0; i < 4; i++) {
-        const blade = new THREE.Mesh(
-          new THREE.BoxGeometry(1, 0.1, 0.2),
-          new THREE.MeshStandardMaterial({ color: componentConfig.color })
-        );
-        blade.position.y = 0.1;
-        blade.rotation.y = (Math.PI / 2) * i;
-        group.add(blade);
-      }
-      return group;
-    }
-
-    case "Wall": {
-      return new THREE.Mesh(
-        new THREE.BoxGeometry(width, height * 2, length),
-        new THREE.MeshStandardMaterial({ color: componentConfig.color })
-      );
-    }
-
-    case "Door": {
-      const door = new THREE.Mesh(
-        new THREE.BoxGeometry(width, height * 2, length),
-        new THREE.MeshStandardMaterial({ color: componentConfig.color })
-      );
-      door.position.y = height;
-      return door;
-    }
-
-    case "Window": {
-      const window = new THREE.Mesh(
-        new THREE.BoxGeometry(width, height, length),
-        new THREE.MeshStandardMaterial({ 
-          color: componentConfig.color,
-          transparent: true,
-          opacity: 0.6
-        })
-      );
-      window.position.y = height;
-      return window;
-    }
-
     case "Table": {
       const group = new THREE.Group();
       
@@ -77,7 +23,7 @@ const createFurnitureMesh = (type: string, width: number, length: number): Three
       top.position.y = height * 0.7;
       group.add(top);
 
-      // Legs
+      // Table legs
       const legGeometry = new THREE.CylinderGeometry(0.1, 0.1, height * 0.7, 8);
       const legMaterial = new THREE.MeshStandardMaterial({ color: componentConfig.color });
       
@@ -124,6 +70,91 @@ const createFurnitureMesh = (type: string, width: number, length: number): Three
       });
 
       return group;
+    }
+
+    case "Bed": {
+      const group = new THREE.Group();
+      
+      // Mattress
+      const mattress = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height * 0.4, length),
+        new THREE.MeshStandardMaterial({ color: componentConfig.color })
+      );
+      mattress.position.y = height * 0.2;
+      group.add(mattress);
+
+      // Headboard
+      const headboard = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height * 0.8, 0.2),
+        new THREE.MeshStandardMaterial({ color: componentConfig.color })
+      );
+      headboard.position.set(0, height * 0.4, length/2);
+      group.add(headboard);
+
+      return group;
+    }
+
+    case "Sofa": {
+      const group = new THREE.Group();
+      
+      // Base
+      const base = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height * 0.4, length),
+        new THREE.MeshStandardMaterial({ color: componentConfig.color })
+      );
+      base.position.y = height * 0.2;
+      group.add(base);
+
+      // Back
+      const back = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height * 0.6, 0.3),
+        new THREE.MeshStandardMaterial({ color: componentConfig.color })
+      );
+      back.position.set(0, height * 0.5, length/2 - 0.15);
+      group.add(back);
+
+      // Arms
+      const armGeometry = new THREE.BoxGeometry(0.3, height * 0.6, length);
+      const armMaterial = new THREE.MeshStandardMaterial({ color: componentConfig.color });
+      
+      const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+      leftArm.position.set(-width/2 + 0.15, height * 0.3, 0);
+      group.add(leftArm);
+
+      const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+      rightArm.position.set(width/2 - 0.15, height * 0.3, 0);
+      group.add(rightArm);
+
+      return group;
+    }
+
+    case "TV": {
+      const group = new THREE.Group();
+      
+      // Screen
+      const screen = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height * 0.6, 0.1),
+        new THREE.MeshStandardMaterial({ color: 0x000000 })
+      );
+      screen.position.y = height;
+      group.add(screen);
+
+      // Stand
+      const stand = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.3, height, 8),
+        new THREE.MeshStandardMaterial({ color: componentConfig.color })
+      );
+      stand.position.y = height * 0.5;
+      group.add(stand);
+
+      return group;
+    }
+
+    case "Refrigerator": {
+      return new THREE.Mesh(
+        new THREE.BoxGeometry(width, height * 2, length),
+        new THREE.MeshStandardMaterial({ color: componentConfig.color })
+      );
     }
 
     default: {
