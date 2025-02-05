@@ -3,9 +3,11 @@ import { useRef, useEffect } from "react";
 interface InfiniteGridProps {
   width: number;
   height: number;
+  scale: number;
+  position: { x: number; y: number };
 }
 
-export const InfiniteGrid = ({ width, height }: InfiniteGridProps) => {
+export const InfiniteGrid = ({ width, height, scale, position }: InfiniteGridProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -25,13 +27,13 @@ export const InfiniteGrid = ({ width, height }: InfiniteGridProps) => {
     const drawGrid = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const gridSize = 20;
+      const gridSize = 20 * scale;
       ctx.strokeStyle = "#E2E8F0";
       ctx.lineWidth = 0.5;
 
-      // Calculate grid offset based on scroll position
-      const offsetX = window.scrollX % gridSize;
-      const offsetY = window.scrollY % gridSize;
+      // Calculate grid offset based on position and scale
+      const offsetX = (position.x * scale) % gridSize;
+      const offsetY = (position.y * scale) % gridSize;
 
       // Calculate visible area with padding
       const startX = -gridSize * 2;
@@ -56,24 +58,18 @@ export const InfiniteGrid = ({ width, height }: InfiniteGridProps) => {
       }
     };
 
-    const handleScroll = () => {
-      requestAnimationFrame(drawGrid);
-    };
-
     const handleResize = () => {
       updateCanvasSize();
       drawGrid();
     };
 
-    window.addEventListener('scroll', handleScroll);
     window.addEventListener('resize', handleResize);
     drawGrid();
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [scale, position]);
 
   return (
     <canvas
@@ -86,7 +82,6 @@ export const InfiniteGrid = ({ width, height }: InfiniteGridProps) => {
         height: '100%',
         zIndex: -1,
         pointerEvents: 'none',
-        transform: 'translate3d(0,0,0)'
       }}
     />
   );
