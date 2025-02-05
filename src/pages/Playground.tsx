@@ -174,10 +174,10 @@ const Playground = () => {
   };
 
   return (
-    <div className="min-h-screen w-screen overflow-hidden relative">
+    <div className="absolute inset-0 overflow-visible">
       <InfiniteGrid width={window.innerWidth} height={window.innerHeight} />
       
-      <div className="fixed inset-0 pointer-events-none">
+      <div className="absolute inset-0 overflow-visible pointer-events-none">
         <div className="pointer-events-auto">
           <RoomCanvas
             rooms={rooms}
