@@ -210,7 +210,7 @@ const Playground = () => {
   };
 
   return (
-    <div className="min-h-screen bg-mane-background relative overflow-hidden">
+    <div className="min-h-screen bg-mane-background relative">
       <InfiniteGrid width={window.innerWidth} height={window.innerHeight} />
       
       {/* Left Sidebar */}
@@ -242,7 +242,7 @@ const Playground = () => {
       )}
 
       {/* Main Canvas Area */}
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="absolute inset-0 flex items-center justify-center">
         <RoomCanvas
           rooms={rooms}
           selectedRoom={selectedRoom}
