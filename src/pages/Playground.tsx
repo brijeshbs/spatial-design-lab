@@ -25,12 +25,8 @@ const Playground = () => {
     handleRoomUpdate,
   } = useRoomManagement(dimensions);
 
-  const handleComponentSelect = (component: Component) => {
+  const handleComponentAdd = (component: Component) => {
     setComponents(prev => [...prev, component]);
-    toast({
-      title: "Component Added",
-      description: `Added ${component.type} to the canvas. Click to place it.`,
-    });
   };
 
   const findValidPosition = (
@@ -107,13 +103,14 @@ const Playground = () => {
         onMouseLeave={handleCanvasMouseUp}
         showPlot={showPlot}
         components={components}
+        onComponentAdd={handleComponentAdd}
       />
 
       <LeftSidebar
         showLeftSidebar={showLeftSidebar}
         setShowLeftSidebar={setShowLeftSidebar}
         onGenerate={generateInitialLayout}
-        onComponentSelect={handleComponentSelect}
+        onComponentSelect={handleComponentAdd}
       />
 
       <RightSidebar

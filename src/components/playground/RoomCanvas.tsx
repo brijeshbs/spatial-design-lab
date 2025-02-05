@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { Room } from "./types";
+import { Room, Component } from "./types";
 import { ROOM_COLORS } from "./constants";
 import { drawPlotBorder, drawPlotDimensions, drawRoomHandles } from "@/utils/canvasDrawing";
 
@@ -13,6 +13,7 @@ interface RoomCanvasProps {
   onMouseLeave: () => void;
   rotation: number;
   showPlot?: boolean;
+  components: Component[];
 }
 
 export const RoomCanvas = ({
@@ -25,6 +26,7 @@ export const RoomCanvas = ({
   onMouseLeave,
   rotation,
   showPlot = false,
+  components,
 }: RoomCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -50,6 +52,7 @@ export const RoomCanvas = ({
       drawPlotDimensions(ctx, dimensions, gridSize);
     }
 
+    // Draw rooms
     rooms.forEach((room) => {
       const isSelected = selectedRoom?.id === room.id;
       const roomColor = ROOM_COLORS[room.type as keyof typeof ROOM_COLORS] || "#E2E8F0";
@@ -83,9 +86,42 @@ export const RoomCanvas = ({
         drawRoomHandles(ctx, room, gridSize);
       }
     });
+
+    // Draw components
+    components.forEach((component) => {
+      ctx.save();
+      
+      // Move to component position and apply rotation
+      ctx.translate(
+        component.x + (component.width * gridSize) / 2,
+        component.y + (component.length * gridSize) / 2
+      );
+      ctx.rotate((component.rotation * Math.PI) / 180);
+      
+      // Draw component
+      ctx.fillStyle = "#9CA3AF";
+      ctx.fillRect(
+        -(component.width * gridSize) / 2,
+        -(component.length * gridSize) / 2,
+        component.width * gridSize,
+        component.length * gridSize
+      );
+      
+      // Add component label
+      ctx.fillStyle = "#2C3E50";
+      ctx.font = "10px Inter";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        component.type,
+        0,
+        0
+      );
+      
+      ctx.restore();
+    });
     
     ctx.restore();
-  }, [rooms, selectedRoom, dimensions, rotation, showPlot]);
+  }, [rooms, selectedRoom, dimensions, rotation, showPlot, components]);
 
   return (
     <canvas

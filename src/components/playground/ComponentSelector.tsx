@@ -14,7 +14,7 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
     (key) => !structuralComponents.includes(key)
   );
 
-  const handleComponentSelect = (type: string) => {
+  const handleDragStart = (e: React.DragEvent, type: string) => {
     const componentSpec = COMPONENTS[type as keyof typeof COMPONENTS];
     const newComponent: Component = {
       id: Math.random().toString(36).substr(2, 9),
@@ -25,7 +25,7 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
       y: 0,
       rotation: 0,
     };
-    onSelect(newComponent);
+    e.dataTransfer.setData("component", JSON.stringify(newComponent));
   };
 
   return (
@@ -38,8 +38,9 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
               <Button
                 key={type}
                 variant="outline"
-                className="w-full justify-start"
-                onClick={() => handleComponentSelect(type)}
+                className="w-full justify-start cursor-move"
+                draggable
+                onDragStart={(e) => handleDragStart(e, type)}
               >
                 {type}
               </Button>
@@ -58,8 +59,9 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
               <Button
                 key={type}
                 variant="outline"
-                className="w-full justify-start"
-                onClick={() => handleComponentSelect(type)}
+                className="w-full justify-start cursor-move"
+                draggable
+                onDragStart={(e) => handleDragStart(e, type)}
               >
                 {type}
               </Button>
