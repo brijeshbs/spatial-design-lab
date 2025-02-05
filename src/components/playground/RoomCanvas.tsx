@@ -50,6 +50,17 @@ export const RoomCanvas = ({
     if (showPlot) {
       drawPlotBorder(ctx, dimensions, gridSize);
       drawPlotDimensions(ctx, dimensions, gridSize);
+      
+      // Draw plot door
+      const doorWidth = 3 * gridSize;
+      const doorHeight = gridSize / 2;
+      ctx.fillStyle = "#2C3E50";
+      ctx.fillRect(
+        dimensions.width * gridSize - doorWidth,
+        dimensions.length * gridSize - doorHeight,
+        doorWidth,
+        doorHeight
+      );
     }
 
     // Draw rooms
@@ -73,6 +84,32 @@ export const RoomCanvas = ({
         room.width * gridSize,
         room.length * gridSize
       );
+
+      // Draw room door (except for Living Room)
+      if (room.type !== "Living Room") {
+        const doorWidth = 3 * gridSize;
+        const doorHeight = gridSize / 2;
+        ctx.fillStyle = "#2C3E50";
+        ctx.fillRect(
+          room.x * gridSize + room.width * gridSize - doorWidth,
+          room.y * gridSize + room.length * gridSize - doorHeight,
+          doorWidth,
+          doorHeight
+        );
+      }
+
+      // Draw Living Room door alongside plot door
+      if (room.type === "Living Room") {
+        const doorWidth = 3 * gridSize;
+        const doorHeight = gridSize / 2;
+        ctx.fillStyle = "#2C3E50";
+        ctx.fillRect(
+          dimensions.width * gridSize - doorWidth - (4 * gridSize), // Offset from plot door
+          dimensions.length * gridSize - doorHeight,
+          doorWidth,
+          doorHeight
+        );
+      }
 
       ctx.fillStyle = "#2C3E50";
       ctx.font = "12px Inter";
@@ -126,7 +163,7 @@ export const RoomCanvas = ({
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left - 50; // Adjust for the translate(50, 50)
+    const x = e.clientX - rect.left - 50;
     const y = e.clientY - rect.top - 50;
     const gridSize = 20;
 
