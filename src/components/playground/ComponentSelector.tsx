@@ -3,6 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { COMPONENTS } from "./constants";
 import { Component } from "./types";
+import { toast } from "@/components/ui/use-toast";
 
 interface ComponentSelectorProps {
   onSelect: (component: Component) => void;
@@ -28,6 +29,25 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
     e.dataTransfer.setData("component", JSON.stringify(newComponent));
   };
 
+  const handleClick = (type: string) => {
+    const componentSpec = COMPONENTS[type as keyof typeof COMPONENTS];
+    const newComponent: Component = {
+      id: Math.random().toString(36).substr(2, 9),
+      type,
+      width: componentSpec.width,
+      length: componentSpec.length,
+      // Place component in the center of the plot initially
+      x: 200,
+      y: 200,
+      rotation: 0,
+    };
+    onSelect(newComponent);
+    toast({
+      title: "Component Added",
+      description: `${type} has been placed on the canvas`,
+    });
+  };
+
   return (
     <ScrollArea className="h-[400px] pr-4">
       <div className="space-y-4">
@@ -38,9 +58,10 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
               <Button
                 key={type}
                 variant="outline"
-                className="w-full justify-start cursor-move"
+                className="w-full justify-start cursor-pointer"
                 draggable
                 onDragStart={(e) => handleDragStart(e, type)}
+                onClick={() => handleClick(type)}
               >
                 {type}
               </Button>
@@ -59,9 +80,10 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
               <Button
                 key={type}
                 variant="outline"
-                className="w-full justify-start cursor-move"
+                className="w-full justify-start cursor-pointer"
                 draggable
                 onDragStart={(e) => handleDragStart(e, type)}
+                onClick={() => handleClick(type)}
               >
                 {type}
               </Button>
