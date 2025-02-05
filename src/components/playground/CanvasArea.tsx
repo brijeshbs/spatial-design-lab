@@ -37,21 +37,18 @@ export const CanvasArea = ({
   const [isPanning, setIsPanning] = useState(false);
   const [startPanPosition, setStartPanPosition] = useState({ x: 0, y: 0 });
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
-  const [localComponents, setLocalComponents] = useState<Component[]>(components);
-
-  useEffect(() => {
-    setLocalComponents(components);
-  }, [components]);
 
   const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {
-    setLocalComponents(prevComponents =>
-      prevComponents.map(c =>
-        c.id === component.id
-          ? { ...c, x: newX, y: newY }
-          : c
-      )
-    );
-  }, []);
+    if (onComponentAdd) {
+      const updatedComponent = { ...component, x: newX, y: newY };
+      // Create a new array with all components except the one being moved
+      const otherComponents = components.filter(c => c.id !== component.id);
+      // Add the updated component
+      onComponentAdd(updatedComponent);
+      // Update all other components to maintain their positions
+      otherComponents.forEach(c => onComponentAdd(c));
+    }
+  }, [components, onComponentAdd]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -120,7 +117,7 @@ export const CanvasArea = ({
               onMouseLeave={onMouseLeave}
               rotation={rotation}
               showPlot={showPlot}
-              components={localComponents}
+              components={components}
               onComponentMove={handleComponentMove}
             />
           </div>
@@ -135,7 +132,7 @@ export const CanvasArea = ({
           rooms={rooms}
           selectedRoom={selectedRoom}
           dimensions={dimensions}
-          components={localComponents}
+          components={components}
         />
       )}
       
