@@ -5,7 +5,7 @@ import { ThreeDCanvas } from "./ThreeDCanvas";
 import { InfiniteGrid } from "./InfiniteGrid";
 import { Compass } from "./Compass";
 import { Button } from "@/components/ui/button";
-import { Square3d, View } from "lucide-react";
+import { Box, View } from "lucide-react";
 
 interface CanvasAreaProps {
   rooms: Room[];
@@ -120,7 +120,7 @@ export const CanvasArea = ({
           className="bg-white"
           onClick={() => setViewMode(viewMode === '2d' ? '3d' : '2d')}
         >
-          {viewMode === '2d' ? <Square3d className="h-4 w-4" /> : <View className="h-4 w-4" />}
+          {viewMode === '2d' ? <Box className="h-4 w-4" /> : <View className="h-4 w-4" />}
         </Button>
         {viewMode === '2d' && (
           <Compass size={80} rotation={rotation} onRotate={setRotation} />
