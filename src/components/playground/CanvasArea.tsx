@@ -48,17 +48,11 @@ export const CanvasArea = ({
 
   const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {
     if (onComponentAdd) {
-      // Find the component to update
-      const updatedComponents = components.map(c => 
-        c.id === component.id ? { ...c, x: newX, y: newY } : c
-      );
-      // Update only the moved component
-      const movedComponent = updatedComponents.find(c => c.id === component.id);
-      if (movedComponent) {
-        onComponentAdd(movedComponent);
-      }
+      // Create a new component with updated position
+      const updatedComponent = { ...component, x: newX, y: newY };
+      onComponentAdd(updatedComponent);
     }
-  }, [components, onComponentAdd]);
+  }, [onComponentAdd]);
 
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     handlePanStart(e);
