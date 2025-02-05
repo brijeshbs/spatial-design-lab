@@ -12,6 +12,7 @@ interface RoomCanvasProps {
   onMouseUp: () => void;
   onMouseLeave: () => void;
   rotation: number;
+  showPlot?: boolean;
 }
 
 export const RoomCanvas = ({
@@ -23,6 +24,7 @@ export const RoomCanvas = ({
   onMouseUp,
   onMouseLeave,
   rotation,
+  showPlot = false,
 }: RoomCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -43,8 +45,10 @@ export const RoomCanvas = ({
     ctx.save();
     ctx.translate(50, 50);
     
-    drawPlotBorder(ctx, dimensions, gridSize);
-    drawPlotDimensions(ctx, dimensions, gridSize);
+    if (showPlot) {
+      drawPlotBorder(ctx, dimensions, gridSize);
+      drawPlotDimensions(ctx, dimensions, gridSize);
+    }
 
     rooms.forEach((room) => {
       const isSelected = selectedRoom?.id === room.id;
@@ -81,7 +85,7 @@ export const RoomCanvas = ({
     });
     
     ctx.restore();
-  }, [rooms, selectedRoom, dimensions, rotation]);
+  }, [rooms, selectedRoom, dimensions, rotation, showPlot]);
 
   return (
     <canvas

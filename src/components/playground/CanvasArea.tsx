@@ -12,6 +12,7 @@ interface CanvasAreaProps {
   onMouseMove: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   onMouseUp: () => void;
   onMouseLeave: () => void;
+  showPlot?: boolean;
 }
 
 export const CanvasArea = ({
@@ -22,6 +23,7 @@ export const CanvasArea = ({
   onMouseMove,
   onMouseUp,
   onMouseLeave,
+  showPlot = false,
 }: CanvasAreaProps) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -93,6 +95,7 @@ export const CanvasArea = ({
           onMouseUp={handleMouseUp}
           onMouseLeave={onMouseLeave}
           rotation={rotation}
+          showPlot={showPlot}
         />
       </div>
       <div className="fixed bottom-8 right-8 z-50">

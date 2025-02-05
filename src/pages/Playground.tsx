@@ -11,7 +11,7 @@ const Playground = () => {
   const [dimensions, setDimensions] = useState({ width: 30, length: 40 });
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
-  const [showPlot, setShowPlot] = useState(true); // Changed to true by default
+  const [showPlot, setShowPlot] = useState(false);
 
   const {
     rooms,
@@ -38,6 +38,7 @@ const Playground = () => {
       };
     });
     setRooms(newRooms);
+    setShowPlot(true);
   };
 
   return (
@@ -50,6 +51,7 @@ const Playground = () => {
         onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleCanvasMouseUp}
         onMouseLeave={handleCanvasMouseUp}
+        showPlot={showPlot}
       />
 
       <LeftSidebar
