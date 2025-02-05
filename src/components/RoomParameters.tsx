@@ -86,6 +86,42 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
       setError("Please select at least one room type");
       return;
     }
+
+    // Calculate initial positions for rooms
+    let currentY = 0;
+    const roomsWithPositions = selectedRoomTypes.map((type) => {
+      const room = ROOM_TYPES[type as keyof typeof ROOM_TYPES];
+      
+      // Check if room fits within plot dimensions
+      if (room.width > dimensions.width || room.length > dimensions.length) {
+        toast({
+          title: "Warning",
+          description: `${type} (${room.width}x${room.length}) is larger than plot dimensions (${dimensions.width}x${dimensions.length})`,
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      // Check if room fits at current Y position
+      if (currentY + room.length > dimensions.length) {
+        toast({
+          title: "Warning",
+          description: "Not all rooms fit within the plot height",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      const position = { x: 0, y: currentY };
+      currentY += room.length + 1; // Add 1ft spacing between rooms
+      return { type, position };
+    }).filter(Boolean);
+
+    if (roomsWithPositions.length !== selectedRoomTypes.length) {
+      setError("Some rooms don't fit within the plot dimensions");
+      return;
+    }
+
     setError(null);
     onGenerate({ ...dimensions, roomTypes: selectedRoomTypes });
     toast({

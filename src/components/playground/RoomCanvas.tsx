@@ -36,6 +36,11 @@ export const RoomCanvas = ({
 
     const gridSize = 20;
     
+    // Draw plot border
+    ctx.strokeStyle = "#2C3E50";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, dimensions.width * gridSize, dimensions.length * gridSize);
+    
     // Draw plot dimensions
     ctx.fillStyle = "#2C3E50";
     ctx.font = "12px Inter";
