@@ -100,23 +100,81 @@ export const drawRoomHandles = (
   const handleSize = 8;
   ctx.fillStyle = "#3498DB";
   
-  const handlePositions = [
-    [0, 0],
-    [room.width * gridSize, 0],
-    [0, room.length * gridSize],
-    [room.width * gridSize, room.length * gridSize],
-    [room.width * gridSize / 2, 0],
-    [room.width * gridSize, room.length * gridSize / 2],
-    [room.width * gridSize / 2, room.length * gridSize],
-    [0, room.length * gridSize / 2]
+  // Draw corner handles
+  const corners = [
+    [0, 0], // top-left
+    [room.width * gridSize, 0], // top-right
+    [0, room.length * gridSize], // bottom-left
+    [room.width * gridSize, room.length * gridSize], // bottom-right
   ];
 
-  handlePositions.forEach(([hx, hy]) => {
+  corners.forEach(([hx, hy]) => {
     ctx.fillRect(
       room.x * gridSize + hx - handleSize/2,
       room.y * gridSize + hy - handleSize/2,
       handleSize,
       handleSize
     );
+  });
+
+  // Draw edge handles with arrows
+  const edges = [
+    { x: room.width * gridSize / 2, y: 0, isHorizontal: true }, // top
+    { x: room.width * gridSize, y: room.length * gridSize / 2, isHorizontal: false }, // right
+    { x: room.width * gridSize / 2, y: room.length * gridSize, isHorizontal: true }, // bottom
+    { x: 0, y: room.length * gridSize / 2, isHorizontal: false } // left
+  ];
+
+  edges.forEach(({ x, y, isHorizontal }) => {
+    // Draw handle rectangle
+    ctx.fillRect(
+      room.x * gridSize + x - handleSize/2,
+      room.y * gridSize + y - handleSize/2,
+      handleSize,
+      handleSize
+    );
+
+    // Draw bidirectional arrows
+    const arrowSize = 12;
+    ctx.strokeStyle = "#3498DB";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    if (isHorizontal) {
+      // Draw horizontal arrows (<->)
+      // Left arrow
+      ctx.moveTo(room.x * gridSize + x - arrowSize, room.y * gridSize + y);
+      ctx.lineTo(room.x * gridSize + x - arrowSize/2, room.y * gridSize + y);
+      ctx.moveTo(room.x * gridSize + x - arrowSize, room.y * gridSize + y);
+      ctx.lineTo(room.x * gridSize + x - arrowSize + 4, room.y * gridSize + y - 4);
+      ctx.moveTo(room.x * gridSize + x - arrowSize, room.y * gridSize + y);
+      ctx.lineTo(room.x * gridSize + x - arrowSize + 4, room.y * gridSize + y + 4);
+
+      // Right arrow
+      ctx.moveTo(room.x * gridSize + x + arrowSize/2, room.y * gridSize + y);
+      ctx.lineTo(room.x * gridSize + x + arrowSize, room.y * gridSize + y);
+      ctx.moveTo(room.x * gridSize + x + arrowSize, room.y * gridSize + y);
+      ctx.lineTo(room.x * gridSize + x + arrowSize - 4, room.y * gridSize + y - 4);
+      ctx.moveTo(room.x * gridSize + x + arrowSize, room.y * gridSize + y);
+      ctx.lineTo(room.x * gridSize + x + arrowSize - 4, room.y * gridSize + y + 4);
+    } else {
+      // Draw vertical arrows (^v)
+      // Up arrow
+      ctx.moveTo(room.x * gridSize + x, room.y * gridSize + y - arrowSize);
+      ctx.lineTo(room.x * gridSize + x, room.y * gridSize + y - arrowSize/2);
+      ctx.moveTo(room.x * gridSize + x, room.y * gridSize + y - arrowSize);
+      ctx.lineTo(room.x * gridSize + x - 4, room.y * gridSize + y - arrowSize + 4);
+      ctx.moveTo(room.x * gridSize + x, room.y * gridSize + y - arrowSize);
+      ctx.lineTo(room.x * gridSize + x + 4, room.y * gridSize + y - arrowSize + 4);
+
+      // Down arrow
+      ctx.moveTo(room.x * gridSize + x, room.y * gridSize + y + arrowSize/2);
+      ctx.lineTo(room.x * gridSize + x, room.y * gridSize + y + arrowSize);
+      ctx.moveTo(room.x * gridSize + x, room.y * gridSize + y + arrowSize);
+      ctx.lineTo(room.x * gridSize + x - 4, room.y * gridSize + y + arrowSize - 4);
+      ctx.moveTo(room.x * gridSize + x, room.y * gridSize + y + arrowSize);
+      ctx.lineTo(room.x * gridSize + x + 4, room.y * gridSize + y + arrowSize - 4);
+    }
+    ctx.stroke();
   });
 };
