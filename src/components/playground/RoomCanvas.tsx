@@ -2,6 +2,7 @@ import { useRef, useEffect } from "react";
 import { Room } from "./types";
 import { Compass } from "./Compass";
 import { ROOM_COLORS } from "./constants";
+import { drawPlotBorder, drawPlotDimensions, drawRoomHandles } from "@/utils/canvasDrawing";
 
 interface RoomCanvasProps {
   rooms: Room[];
@@ -31,38 +32,19 @@ export const RoomCanvas = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size based on plot dimensions
-    canvas.width = Math.max(800, dimensions.width * 20 + 100);  // Add padding
-    canvas.height = Math.max(600, dimensions.length * 20 + 100); // Add padding
+    canvas.width = Math.max(800, dimensions.width * 20 + 100);
+    canvas.height = Math.max(600, dimensions.length * 20 + 100);
 
-    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     const gridSize = 20;
     
-    // Draw plot border with all sides
-    ctx.strokeStyle = "#2C3E50";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(dimensions.width * gridSize, 0); // Top
-    ctx.lineTo(dimensions.width * gridSize, dimensions.length * gridSize); // Right
-    ctx.lineTo(0, dimensions.length * gridSize); // Bottom
-    ctx.lineTo(0, 0); // Left
-    ctx.stroke();
-    
-    // Draw plot dimensions
-    ctx.fillStyle = "#2C3E50";
-    ctx.font = "12px Inter";
-    ctx.fillText(`${dimensions.width} ft`, dimensions.width * gridSize / 2 - 20, -5);
-    ctx.fillText(`${dimensions.length} ft`, -25, dimensions.length * gridSize / 2);
+    drawPlotBorder(ctx, dimensions, gridSize);
+    drawPlotDimensions(ctx, dimensions, gridSize);
 
-    // Draw rooms
     rooms.forEach((room) => {
       const isSelected = selectedRoom?.id === room.id;
       const roomColor = ROOM_COLORS[room.type as keyof typeof ROOM_COLORS] || "#E2E8F0";
       
-      // Draw room
       ctx.fillStyle = roomColor;
       ctx.fillRect(
         room.x * gridSize,
@@ -71,7 +53,6 @@ export const RoomCanvas = ({
         room.length * gridSize
       );
       
-      // Draw room border
       ctx.strokeStyle = isSelected ? "#3498DB" : "#2C3E50";
       ctx.lineWidth = isSelected ? 2 : 1;
       ctx.strokeRect(
@@ -81,7 +62,6 @@ export const RoomCanvas = ({
         room.length * gridSize
       );
 
-      // Draw room label and dimensions
       ctx.fillStyle = "#2C3E50";
       ctx.font = "12px Inter";
       ctx.fillText(
@@ -90,50 +70,15 @@ export const RoomCanvas = ({
         room.y * gridSize + 20
       );
 
-      // Draw measurements
-      ctx.fillText(
-        `${room.width} ft`,
-        room.x * gridSize + (room.width * gridSize / 2) - 15,
-        room.y * gridSize - 5
-      );
-      ctx.fillText(
-        `${room.length} ft`,
-        room.x * gridSize - 25,
-        room.y * gridSize + (room.length * gridSize / 2)
-      );
-
       if (isSelected) {
-        const handleSize = 8;
-        ctx.fillStyle = "#3498DB";
-        
-        // Draw resize handles
-        const handlePositions = [
-          [0, 0],                           // Top-left
-          [room.width * gridSize, 0],       // Top-right
-          [0, room.length * gridSize],      // Bottom-left
-          [room.width * gridSize, room.length * gridSize], // Bottom-right
-          [room.width * gridSize / 2, 0],                    // Top
-          [room.width * gridSize, room.length * gridSize / 2], // Right
-          [room.width * gridSize / 2, room.length * gridSize], // Bottom
-          [0, room.length * gridSize / 2]                    // Left
-        ];
-
-        handlePositions.forEach(([hx, hy]) => {
-          ctx.fillRect(
-            room.x * gridSize + hx - handleSize/2,
-            room.y * gridSize + hy - handleSize/2,
-            handleSize,
-            handleSize
-          );
-        });
+        drawRoomHandles(ctx, room, gridSize);
       }
     });
 
-    // Draw compass in the bottom right corner with padding
     const compass = new Compass({ 
       size: 60, 
-      x: canvas.width - 80,  // Adjusted position with more padding
-      y: canvas.height - 80  // Adjusted position with more padding
+      x: canvas.width - 80,
+      y: canvas.height - 80
     });
     compass.draw(ctx);
 
