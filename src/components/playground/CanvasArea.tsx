@@ -51,15 +51,17 @@ export const CanvasArea = ({
     // Check if compass rotation buttons were clicked
     const compass = new Compass({ 
       size: 60, 
-      x: canvas.width - 80,
-      y: canvas.height - 80,
+      x: window.innerWidth - 80,
+      y: window.innerHeight - 80,
       rotation
     });
     
     const rotationClick = compass.isRotationButtonClicked(x, y);
     if (rotationClick) {
-      const newRotation = (rotation + (rotationClick === 'left' ? -90 : 90)) % 360;
-      setRotation(newRotation);
+      setRotation(prev => {
+        const change = rotationClick === 'left' ? -90 : 90;
+        return (prev + change + 360) % 360;
+      });
       return;
     }
 

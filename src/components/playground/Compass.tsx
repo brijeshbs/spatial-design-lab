@@ -11,20 +11,11 @@ export class Compass {
     this.rotation = rotation;
   }
 
-  rotate(degrees: number) {
-    this.rotation = (this.rotation + degrees) % 360;
-  }
-
   draw(ctx: CanvasRenderingContext2D) {
     // Save current context state
     ctx.save();
     
-    // Translate to compass center and apply rotation
-    ctx.translate(this.x, this.y);
-    ctx.rotate((this.rotation * Math.PI) / 180);
-    ctx.translate(-this.x, -this.y);
-    
-    // Draw compass circle
+    // Draw compass circle with fixed screen position
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size/2, 0, 2 * Math.PI);
     ctx.fillStyle = "white";
@@ -32,6 +23,11 @@ export class Compass {
     ctx.strokeStyle = "#2C3E50";
     ctx.lineWidth = 2;
     ctx.stroke();
+
+    // Apply rotation only to the compass needle and N indicator
+    ctx.translate(this.x, this.y);
+    ctx.rotate((-this.rotation * Math.PI) / 180);
+    ctx.translate(-this.x, -this.y);
 
     // Draw compass needle
     ctx.beginPath();
@@ -45,7 +41,10 @@ export class Compass {
     ctx.fillStyle = "#2C3E50";
     ctx.font = "bold 14px Inter";
     ctx.textAlign = "center";
-    ctx.fillText("N", this.x, this.y - this.size/2 - 5);
+    ctx.fillText("N", this.x, this.y - this.size/2 + 15);
+
+    // Reset rotation for buttons
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     // Draw rotation buttons
     const buttonRadius = 15;
