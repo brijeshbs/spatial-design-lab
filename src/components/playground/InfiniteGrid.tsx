@@ -15,66 +15,63 @@ export const InfiniteGrid = ({ width, height }: InfiniteGridProps) => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size to match window size
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const updateCanvasSize = () => {
+      canvas.width = window.innerWidth * 2;
+      canvas.height = window.innerHeight * 2;
+    };
+
+    updateCanvasSize();
 
     const drawGrid = () => {
-      // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const gridSize = 20;
       ctx.strokeStyle = "#E2E8F0";
       ctx.lineWidth = 0.5;
 
-      // Calculate starting points based on scroll position
-      const startX = Math.floor(window.scrollX / gridSize) * gridSize;
-      const startY = Math.floor(window.scrollY / gridSize) * gridSize;
-      const endX = startX + window.innerWidth + gridSize;
-      const endY = startY + window.innerHeight + gridSize;
+      // Calculate grid offset based on scroll position
+      const offsetX = window.scrollX % gridSize;
+      const offsetY = window.scrollY % gridSize;
+
+      // Calculate visible area with padding
+      const startX = -gridSize * 2;
+      const startY = -gridSize * 2;
+      const endX = canvas.width + gridSize * 2;
+      const endY = canvas.height + gridSize * 2;
 
       // Draw vertical lines
       for (let x = startX; x <= endX; x += gridSize) {
-        const offsetX = x - window.scrollX;
         ctx.beginPath();
-        ctx.moveTo(offsetX, 0);
-        ctx.lineTo(offsetX, canvas.height);
+        ctx.moveTo(x - offsetX, startY);
+        ctx.lineTo(x - offsetX, endY);
         ctx.stroke();
       }
 
       // Draw horizontal lines
       for (let y = startY; y <= endY; y += gridSize) {
-        const offsetY = y - window.scrollY;
         ctx.beginPath();
-        ctx.moveTo(0, offsetY);
-        ctx.lineTo(canvas.width, offsetY);
+        ctx.moveTo(startX, y - offsetY);
+        ctx.lineTo(endX, y - offsetY);
         ctx.stroke();
       }
     };
 
-    // Initial draw
-    drawGrid();
-
-    // Handle scroll
     const handleScroll = () => {
       requestAnimationFrame(drawGrid);
     };
 
-    // Handle resize
     const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      updateCanvasSize();
       drawGrid();
     };
 
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('resize', handleResize);
-    window.addEventListener('load', handleResize);
+    drawGrid();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('load', handleResize);
     };
   }, []);
 
@@ -85,10 +82,11 @@ export const InfiniteGrid = ({ width, height }: InfiniteGridProps) => {
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
+        width: '100vw',
+        height: '100vh',
         zIndex: -1,
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        transform: 'translate3d(0,0,0)'
       }}
     />
   );

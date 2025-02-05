@@ -174,26 +174,28 @@ const Playground = () => {
   };
 
   return (
-    <div className="min-h-screen bg-mane-background relative">
+    <div className="min-h-screen w-screen overflow-hidden relative">
       <InfiniteGrid width={window.innerWidth} height={window.innerHeight} />
       
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="pointer-events-auto">
+          <RoomCanvas
+            rooms={rooms}
+            selectedRoom={selectedRoom}
+            dimensions={dimensions}
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+            onMouseLeave={handleCanvasMouseUp}
+          />
+        </div>
+      </div>
+
       <LeftSidebar
         showLeftSidebar={showLeftSidebar}
         setShowLeftSidebar={setShowLeftSidebar}
         onGenerate={generateInitialLayout}
       />
-
-      <div className="absolute inset-0 flex items-center justify-center">
-        <RoomCanvas
-          rooms={rooms}
-          selectedRoom={selectedRoom}
-          dimensions={dimensions}
-          onMouseDown={handleCanvasMouseDown}
-          onMouseMove={handleCanvasMouseMove}
-          onMouseUp={handleCanvasMouseUp}
-          onMouseLeave={handleCanvasMouseUp}
-        />
-      </div>
 
       <RightSidebar
         showRightSidebar={showRightSidebar}

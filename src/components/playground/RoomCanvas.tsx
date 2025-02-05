@@ -134,7 +134,12 @@ export const RoomCanvas = ({
       ref={canvasRef}
       width={800}
       height={600}
-      className="border border-mane-grid rounded cursor-move"
+      className="cursor-move absolute"
+      style={{
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)'
+      }}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
