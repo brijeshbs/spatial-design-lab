@@ -18,8 +18,10 @@ export const InfiniteGrid = ({ width, height, scale, position }: InfiniteGridPro
     if (!ctx) return;
 
     const updateCanvasSize = () => {
+      // Set canvas size to double the window size to ensure coverage during panning
       canvas.width = window.innerWidth * 2;
       canvas.height = window.innerHeight * 2;
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
     };
 
     updateCanvasSize();
@@ -35,11 +37,11 @@ export const InfiniteGrid = ({ width, height, scale, position }: InfiniteGridPro
       const offsetX = (position.x * scale) % gridSize;
       const offsetY = (position.y * scale) % gridSize;
 
-      // Calculate visible area with padding
-      const startX = -gridSize * 2;
-      const startY = -gridSize * 2;
-      const endX = canvas.width + gridSize * 2;
-      const endY = canvas.height + gridSize * 2;
+      // Calculate visible area with extra padding
+      const startX = -gridSize * 4;
+      const startY = -gridSize * 4;
+      const endX = canvas.width + gridSize * 4;
+      const endY = canvas.height + gridSize * 4;
 
       // Draw vertical lines
       for (let x = startX; x <= endX; x += gridSize) {
@@ -78,8 +80,8 @@ export const InfiniteGrid = ({ width, height, scale, position }: InfiniteGridPro
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
+        width: '100vw',
+        height: '100vh',
         zIndex: -1,
         pointerEvents: 'none',
       }}

@@ -10,6 +10,9 @@ export class Compass {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
+    // Save current context state
+    ctx.save();
+    
     // Draw compass circle
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size/2, 0, 2 * Math.PI);
@@ -32,5 +35,8 @@ export class Compass {
     ctx.font = "bold 14px Inter";
     ctx.textAlign = "center";
     ctx.fillText("N", this.x, this.y - this.size/2 - 5);
+    
+    // Restore context state
+    ctx.restore();
   }
 }

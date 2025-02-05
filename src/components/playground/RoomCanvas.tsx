@@ -124,11 +124,11 @@ export const RoomCanvas = ({
       }
     });
 
-    // Draw compass
+    // Draw compass in the bottom right corner with padding
     const compass = new Compass({ 
       size: 60, 
-      x: canvas.width - 40, 
-      y: canvas.height - 40 
+      x: canvas.width - 50,  // Adjusted position
+      y: canvas.height - 50  // Adjusted position
     });
     compass.draw(ctx);
 
