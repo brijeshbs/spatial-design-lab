@@ -92,25 +92,27 @@ export const RoomCanvas = ({
     ctx.restore();
   }, [rooms, selectedRoom, dimensions, rotation, showPlot, components]);
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = e.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left - 50;
-    const y = e.clientY - rect.top - 50;
+  const isOverRoomHandle = (x: number, y: number, room: Room): boolean => {
     const gridSize = 20;
+    const handleSize = 8;
+    const roomX = room.x * gridSize;
+    const roomY = room.y * gridSize;
+    const roomWidth = room.width * gridSize;
+    const roomLength = room.length * gridSize;
 
-    const clickedComponent = findClickedComponent({ components, x, y, gridSize });
+    // Check if cursor is near any edge or corner
+    const nearRight = Math.abs(x - (roomX + roomWidth)) <= handleSize;
+    const nearBottom = Math.abs(y - (roomY + roomLength)) <= handleSize;
+    const nearLeft = Math.abs(x - roomX) <= handleSize;
+    const nearTop = Math.abs(y - roomY) <= handleSize;
 
-    if (clickedComponent) {
-      draggedComponentRef.current = {
-        component: clickedComponent,
-        offsetX: x - clickedComponent.x,
-        offsetY: y - clickedComponent.y
-      };
-      canvas.style.cursor = 'move';
-    } else {
-      onMouseDown(e);
-    }
+    // Return true if near any edge or corner
+    return (nearRight && (nearTop || nearBottom)) || 
+           (nearLeft && (nearTop || nearBottom)) ||
+           (nearRight && y >= roomY && y <= roomY + roomLength) ||
+           (nearLeft && y >= roomY && y <= roomY + roomLength) ||
+           (nearTop && x >= roomX && x <= roomX + roomWidth) ||
+           (nearBottom && x >= roomX && x <= roomX + roomWidth);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -128,8 +130,27 @@ export const RoomCanvas = ({
       return;
     }
 
-    const hoveringComponent = findClickedComponent({ components, x, y, gridSize });
-    canvas.style.cursor = hoveringComponent ? 'move' : 'default';
+    // Check for room hover and handle hover
+    const hoveredRoom = rooms.find(room => {
+      const roomX = room.x * gridSize;
+      const roomY = room.y * gridSize;
+      const roomWidth = room.width * gridSize;
+      const roomLength = room.length * gridSize;
+      
+      return x >= roomX && x <= roomX + roomWidth && 
+             y >= roomY && y <= roomY + roomLength;
+    });
+
+    if (hoveredRoom && selectedRoom?.id === hoveredRoom.id) {
+      if (isOverRoomHandle(x, y, hoveredRoom)) {
+        canvas.style.cursor = 'nwse-resize';
+      } else {
+        canvas.style.cursor = 'move';
+      }
+    } else {
+      const hoveringComponent = findClickedComponent({ components, x, y, gridSize });
+      canvas.style.cursor = hoveringComponent ? 'move' : 'default';
+    }
 
     onMouseMove(e);
   };
