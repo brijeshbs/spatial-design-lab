@@ -42,13 +42,23 @@ export const RoomCanvas = ({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const gridSize = 20;
+    const wallThickness = gridSize / 2; // Thickness for walls
     
     // Translate to create margin for dimensions
     ctx.save();
     ctx.translate(50, 50);
     
     if (showPlot) {
-      drawPlotBorder(ctx, dimensions, gridSize);
+      // Draw plot walls (thicker border)
+      ctx.strokeStyle = "#403E43"; // Wall color
+      ctx.lineWidth = wallThickness;
+      ctx.strokeRect(
+        wallThickness / 2,
+        wallThickness / 2,
+        dimensions.width * gridSize - wallThickness,
+        dimensions.length * gridSize - wallThickness
+      );
+      
       drawPlotDimensions(ctx, dimensions, gridSize);
       
       // Draw plot door
@@ -68,21 +78,44 @@ export const RoomCanvas = ({
       const isSelected = selectedRoom?.id === room.id;
       const roomColor = ROOM_COLORS[room.type as keyof typeof ROOM_COLORS] || "#E2E8F0";
       
+      // Draw room fill
       ctx.fillStyle = roomColor;
       ctx.fillRect(
-        room.x * gridSize,
-        room.y * gridSize,
-        room.width * gridSize,
-        room.length * gridSize
+        room.x * gridSize + wallThickness / 2,
+        room.y * gridSize + wallThickness / 2,
+        room.width * gridSize - wallThickness,
+        room.length * gridSize - wallThickness
       );
       
-      ctx.strokeStyle = isSelected ? "#3498DB" : "#2C3E50";
-      ctx.lineWidth = isSelected ? 2 : 1;
+      // Draw room walls (thicker border)
+      ctx.strokeStyle = isSelected ? "#3498DB" : "#403E43";
+      ctx.lineWidth = wallThickness;
       ctx.strokeRect(
-        room.x * gridSize,
+        room.x * gridSize + wallThickness / 2,
+        room.y * gridSize + wallThickness / 2,
+        room.width * gridSize - wallThickness,
+        room.length * gridSize - wallThickness
+      );
+
+      // Draw windows (on each wall except where the door is)
+      const windowWidth = 3 * gridSize;
+      const windowHeight = gridSize / 2;
+      ctx.fillStyle = "#D3E4FD";
+
+      // Top wall window
+      ctx.fillRect(
+        room.x * gridSize + (room.width * gridSize / 2) - (windowWidth / 2),
         room.y * gridSize,
-        room.width * gridSize,
-        room.length * gridSize
+        windowWidth,
+        windowHeight
+      );
+
+      // Left wall window
+      ctx.fillRect(
+        room.x * gridSize,
+        room.y * gridSize + (room.length * gridSize / 2) - (windowWidth / 2),
+        windowHeight,
+        windowWidth
       );
 
       // Draw room door (except for Living Room)
