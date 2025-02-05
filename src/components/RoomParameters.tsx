@@ -4,7 +4,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/components/ui/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RoomParametersProps {
   onGenerate: (dimensions: { width: number; length: number; roomTypes: string[] }) => void;
@@ -22,37 +25,48 @@ const ROOM_TYPES = {
 
 export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
   const [dimensions, setDimensions] = useState({ width: 30, length: 40 });
-  const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>(["Living Room", "Master Bedroom"]);
+  const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>(["Living Room"]);
   const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   // Calculate total area and number of possible rooms
   const totalArea = dimensions.width * dimensions.length;
   const averageRoomArea = Object.values(ROOM_TYPES).reduce((sum, room) => sum + (room.width * room.length), 0) / Object.keys(ROOM_TYPES).length;
   const suggestedRoomCount = Math.floor(totalArea / averageRoomArea);
 
-  const handleAddRoom = (roomType: string) => {
-    if (!selectedRoomTypes.includes(roomType)) {
-      const newRoomTypes = [...selectedRoomTypes, roomType];
-      setSelectedRoomTypes(newRoomTypes);
-      
-      // Calculate total area of selected rooms
-      const totalRoomArea = newRoomTypes.reduce((sum, type) => {
-        const room = ROOM_TYPES[type as keyof typeof ROOM_TYPES];
-        return sum + (room.width * room.length);
-      }, 0);
-
-      if (totalRoomArea > totalArea) {
+  const handleToggleRoom = (roomType: string) => {
+    let newRoomTypes: string[];
+    
+    if (selectedRoomTypes.includes(roomType)) {
+      // Don't allow removing Living Room as it's required
+      if (roomType === "Living Room") {
         toast({
-          title: "Warning",
-          description: "Total room area exceeds house dimensions. Some rooms may not fit.",
+          title: "Cannot Remove Living Room",
+          description: "Living Room is required and cannot be removed.",
           variant: "destructive",
         });
+        return;
       }
+      newRoomTypes = selectedRoomTypes.filter(type => type !== roomType);
+    } else {
+      newRoomTypes = [...selectedRoomTypes, roomType];
     }
-  };
+    
+    setSelectedRoomTypes(newRoomTypes);
+    
+    // Calculate total area of selected rooms
+    const totalRoomArea = newRoomTypes.reduce((sum, type) => {
+      const room = ROOM_TYPES[type as keyof typeof ROOM_TYPES];
+      return sum + (room.width * room.length);
+    }, 0);
 
-  const handleRemoveRoom = (roomType: string) => {
-    setSelectedRoomTypes(selectedRoomTypes.filter(type => type !== roomType));
+    if (totalRoomArea > totalArea) {
+      toast({
+        title: "Warning",
+        description: "Total room area exceeds house dimensions. Some rooms may not fit.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleGenerate = () => {
@@ -112,19 +126,43 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label>Add Room Type</Label>
-        <Select onValueChange={handleAddRoom}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select room type" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.keys(ROOM_TYPES).map((type) => (
-              <SelectItem key={type} value={type} disabled={selectedRoomTypes.includes(type)}>
-                {type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Label>Select Room Types</Label>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between"
+            >
+              Select rooms...
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-full p-0">
+            <Command>
+              <CommandInput placeholder="Search room types..." />
+              <CommandEmpty>No room type found.</CommandEmpty>
+              <CommandGroup>
+                {Object.keys(ROOM_TYPES).map((roomType) => (
+                  <CommandItem
+                    key={roomType}
+                    value={roomType}
+                    onSelect={() => handleToggleRoom(roomType)}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedRoomTypes.includes(roomType) ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {roomType}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="space-y-2">
@@ -136,12 +174,14 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
               className="bg-gray-100 px-3 py-1 rounded-full flex items-center gap-2"
             >
               <span>{type}</span>
-              <button
-                onClick={() => handleRemoveRoom(type)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ×
-              </button>
+              {type !== "Living Room" && (
+                <button
+                  onClick={() => handleToggleRoom(type)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ×
+                </button>
+              )}
             </div>
           ))}
         </div>
