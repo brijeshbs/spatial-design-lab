@@ -9,14 +9,18 @@ interface DragDropHandlerProps {
 
 export const DragDropHandler = ({ position, scale, onComponentAdd }: DragDropHandlerProps) => {
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
+    // Only handle component drag events
+    const componentData = e.dataTransfer.types.includes('component');
+    if (componentData) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
     const componentData = e.dataTransfer.getData("component");
     if (componentData && onComponentAdd) {
+      e.preventDefault();
       try {
         const component = JSON.parse(componentData) as Component;
         const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -44,9 +48,18 @@ export const DragDropHandler = ({ position, scale, onComponentAdd }: DragDropHan
 
   return (
     <div 
-      className="absolute inset-0"
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
+      className="absolute inset-0 pointer-events-none"
+      onDragOver={(e) => {
+        e.currentTarget.style.pointerEvents = 'auto';
+        handleDragOver(e);
+      }}
+      onDragLeave={(e) => {
+        e.currentTarget.style.pointerEvents = 'none';
+      }}
+      onDrop={(e) => {
+        e.currentTarget.style.pointerEvents = 'none';
+        handleDrop(e);
+      }}
     />
   );
 };
