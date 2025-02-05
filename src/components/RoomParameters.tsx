@@ -37,20 +37,17 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
   const handleToggleRoom = (roomType: string) => {
     let newRoomTypes: string[];
     
-    if (selectedRoomTypes.includes(roomType)) {
-      // Don't allow removing Living Room as it's required
-      if (roomType === "Living Room") {
-        toast({
-          title: "Cannot Remove Living Room",
-          description: "Living Room is required and cannot be removed.",
-          variant: "destructive",
-        });
-        return;
-      }
-      newRoomTypes = selectedRoomTypes.filter(type => type !== roomType);
-    } else {
-      newRoomTypes = [...selectedRoomTypes, roomType];
+    if (roomType === "Living Room") {
+      toast({
+        title: "Cannot Modify Living Room",
+        description: "Living Room is required and cannot be modified.",
+        variant: "destructive",
+      });
+      return;
     }
+
+    // Add the selected room type
+    newRoomTypes = [...selectedRoomTypes, roomType];
     
     setSelectedRoomTypes(newRoomTypes);
     
@@ -67,6 +64,22 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleRemoveRoom = (index: number) => {
+    // Don't allow removing Living Room
+    if (selectedRoomTypes[index] === "Living Room") {
+      toast({
+        title: "Cannot Remove Living Room",
+        description: "Living Room is required and cannot be removed.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newRoomTypes = [...selectedRoomTypes];
+    newRoomTypes.splice(index, 1);
+    setSelectedRoomTypes(newRoomTypes);
   };
 
   const handleGenerate = () => {
@@ -126,7 +139,7 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label>Select Room Types</Label>
+        <Label>Add Room Types</Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -170,15 +183,15 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
       <div className="space-y-2">
         <Label>Selected Rooms</Label>
         <div className="flex flex-wrap gap-2">
-          {selectedRoomTypes.map((type) => (
+          {selectedRoomTypes.map((type, index) => (
             <div
-              key={type}
+              key={`${type}-${index}`}
               className="bg-gray-100 px-3 py-1 rounded-full flex items-center gap-2"
             >
               <span>{type}</span>
               {type !== "Living Room" && (
                 <button
-                  onClick={() => handleToggleRoom(type)}
+                  onClick={() => handleRemoveRoom(index)}
                   className="text-gray-500 hover:text-gray-700"
                 >
                   ×
