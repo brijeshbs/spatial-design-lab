@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import { Room, Component } from "./types";
 import { ROOM_COLORS } from "./constants";
-import { drawPlotBorder, drawPlotDimensions } from "@/utils/canvasDrawing";
+import { drawPlotBorder, drawPlotDimensions, drawRoomHandles } from "@/utils/canvasDrawing";
 import { drawRoom, drawRoomWindows, drawRoomDoors, drawRoomLabel } from "@/utils/canvasRoomUtils";
 
 interface RoomCanvasProps {
