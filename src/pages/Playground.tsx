@@ -289,10 +289,16 @@ const Playground = () => {
       ctx.stroke();
     }
 
-    // Draw house outline
+    // Draw house outline with measurements
     ctx.strokeStyle = "#2C3E50";
     ctx.lineWidth = 2;
     ctx.strokeRect(0, 0, dimensions.width * gridSize, dimensions.length * gridSize);
+    
+    // Draw house dimensions
+    ctx.fillStyle = "#2C3E50";
+    ctx.font = "12px Inter";
+    ctx.fillText(`${dimensions.width} ft`, dimensions.width * gridSize / 2 - 20, -5);
+    ctx.fillText(`${dimensions.length} ft`, -25, dimensions.length * gridSize / 2);
 
     // Draw rooms
     rooms.forEach((room) => {
@@ -318,13 +324,27 @@ const Playground = () => {
         room.length * gridSize
       );
 
-      // Draw room label
+      // Draw room label and dimensions
       ctx.fillStyle = "#2C3E50";
       ctx.font = "12px Inter";
       ctx.fillText(
-        room.type,
+        `${room.type} (${room.width}' × ${room.length}')`,
         room.x * gridSize + 5,
         room.y * gridSize + 20
+      );
+
+      // Draw width measurement
+      ctx.fillText(
+        `${room.width} ft`,
+        room.x * gridSize + (room.width * gridSize / 2) - 15,
+        room.y * gridSize - 5
+      );
+
+      // Draw length measurement
+      ctx.fillText(
+        `${room.length} ft`,
+        room.x * gridSize - 25,
+        room.y * gridSize + (room.length * gridSize / 2)
       );
 
       // Draw resize handles if room is selected
