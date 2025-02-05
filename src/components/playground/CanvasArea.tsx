@@ -3,10 +3,8 @@ import { Room, Component } from "./types";
 import { RoomCanvas } from "./RoomCanvas";
 import { ThreeDCanvas } from "./ThreeDCanvas";
 import { InfiniteGrid } from "./InfiniteGrid";
-import { Compass } from "./Compass";
-import { Button } from "@/components/ui/button";
-import { Box, View } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { DragDropHandler } from "./DragDropHandler";
+import { CanvasControls } from "./CanvasControls";
 
 interface CanvasAreaProps {
   rooms: Room[];
@@ -81,47 +79,11 @@ export const CanvasArea = ({
     }
   }, [isPanning, onMouseUp]);
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const componentData = e.dataTransfer.getData("component");
-    if (componentData && onComponentAdd) {
-      try {
-        const component = JSON.parse(componentData) as Component;
-        const rect = (e.target as HTMLElement).getBoundingClientRect();
-        const x = (e.clientX - rect.left - position.x) / scale;
-        const y = (e.clientY - rect.top - position.y) / scale;
-        
-        component.x = Math.round(x / 20) * 20; // Snap to grid
-        component.y = Math.round(y / 20) * 20; // Snap to grid
-        
-        onComponentAdd(component);
-        toast({
-          title: "Component Added",
-          description: `${component.type} has been placed on the canvas`,
-        });
-      } catch (error) {
-        console.error("Error adding component:", error);
-        toast({
-          title: "Error",
-          description: "Failed to add component to canvas",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
   return (
     <div 
       className="fixed inset-0 overflow-hidden"
       onWheel={handleWheel}
       onContextMenu={(e) => e.preventDefault()}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
     >
       {viewMode === '2d' ? (
         <>
@@ -146,6 +108,11 @@ export const CanvasArea = ({
               components={components}
             />
           </div>
+          <DragDropHandler
+            position={position}
+            scale={scale}
+            onComponentAdd={onComponentAdd}
+          />
         </>
       ) : (
         <ThreeDCanvas
@@ -155,19 +122,12 @@ export const CanvasArea = ({
         />
       )}
       
-      <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-4">
-        <Button
-          variant="outline"
-          size="icon"
-          className="bg-white"
-          onClick={() => setViewMode(viewMode === '2d' ? '3d' : '2d')}
-        >
-          {viewMode === '2d' ? <Box className="h-4 w-4" /> : <View className="h-4 w-4" />}
-        </Button>
-        {viewMode === '2d' && (
-          <Compass size={80} rotation={rotation} onRotate={setRotation} />
-        )}
-      </div>
+      <CanvasControls
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        rotation={rotation}
+        setRotation={setRotation}
+      />
     </div>
   );
 };
