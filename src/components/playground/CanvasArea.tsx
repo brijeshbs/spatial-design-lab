@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Room } from "./types";
+import { Room, Component } from "./types";
 import { RoomCanvas } from "./RoomCanvas";
 import { ThreeDCanvas } from "./ThreeDCanvas";
 import { InfiniteGrid } from "./InfiniteGrid";
@@ -16,6 +16,7 @@ interface CanvasAreaProps {
   onMouseUp: () => void;
   onMouseLeave: () => void;
   showPlot?: boolean;
+  components: Component[];
 }
 
 export const CanvasArea = ({
@@ -27,6 +28,7 @@ export const CanvasArea = ({
   onMouseUp,
   onMouseLeave,
   showPlot = false,
+  components,
 }: CanvasAreaProps) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
