@@ -10,7 +10,7 @@ interface ComponentSelectorProps {
 }
 
 export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
-  const structuralComponents = ["Wall", "Door", "Window"];
+  const structuralComponents = ["Wall", "Door", "Window", "Staircase"];
   const furnitureComponents = Object.keys(COMPONENTS).filter(
     (key) => !structuralComponents.includes(key)
   );
