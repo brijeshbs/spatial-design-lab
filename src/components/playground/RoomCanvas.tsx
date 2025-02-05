@@ -115,6 +115,27 @@ export const RoomCanvas = ({
            (nearBottom && x >= roomX && x <= roomX + roomWidth);
   };
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = e.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left - 50;
+    const y = e.clientY - rect.top - 50;
+    const gridSize = 20;
+
+    const clickedComponent = findClickedComponent({ components, x, y, gridSize });
+
+    if (clickedComponent) {
+      draggedComponentRef.current = {
+        component: clickedComponent,
+        offsetX: x - clickedComponent.x,
+        offsetY: y - clickedComponent.y
+      };
+      canvas.style.cursor = 'move';
+    } else {
+      onMouseDown(e);
+    }
+  };
+
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
