@@ -23,7 +23,7 @@ export const RoomSelector = ({
   setOpen 
 }: RoomSelectorProps) => {
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <Label>Add Room Types</Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
@@ -66,17 +66,17 @@ export const RoomSelector = ({
 
       <div className="space-y-2">
         <Label>Selected Rooms</Label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col space-y-2">
           {selectedRoomTypes.map((type, index) => (
             <div
               key={`${type}-${index}`}
-              className="bg-gray-100 px-3 py-1 rounded-full flex items-center gap-2"
+              className="bg-gray-100 px-4 py-2 rounded-lg flex items-center justify-between shadow-sm hover:bg-gray-200 transition-colors"
             >
-              <span>{type}</span>
+              <span className="text-sm font-medium text-gray-700">{type}</span>
               {type !== "Living Room" && (
                 <button
                   onClick={() => onRemoveRoom(index)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-red-500 transition-colors"
                 >
                   ×
                 </button>
