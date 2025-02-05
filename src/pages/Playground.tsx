@@ -27,6 +27,8 @@ const Playground = () => {
   const [dimensions, setDimensions] = useState({ width: 30, length: 40 });
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const generateInitialLayout = (dimensions: { width: number; length: number }) => {
@@ -35,15 +37,12 @@ const Playground = () => {
     let currentX = 0;
     let currentY = 0;
 
-    // Try to fit rooms in a grid pattern
     Object.entries(DEFAULT_ROOM_SIZES).forEach(([type, size]) => {
-      // Check if room fits in current row
       if (currentX + size.width > dimensions.width) {
         currentX = 0;
         currentY += size.length;
       }
       
-      // Check if room fits in house
       if (currentY + size.length <= dimensions.length) {
         newRooms.push({
           id: Math.random().toString(36).substr(2, 9),
@@ -64,6 +63,68 @@ const Playground = () => {
     });
 
     setRooms(newRooms);
+  };
+
+  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !selectedRoom) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const gridSize = 20;
+
+    // Check if click is within selected room
+    const roomX = selectedRoom.x * gridSize;
+    const roomY = selectedRoom.y * gridSize;
+    const roomWidth = selectedRoom.width * gridSize;
+    const roomLength = selectedRoom.length * gridSize;
+
+    if (
+      x >= roomX &&
+      x <= roomX + roomWidth &&
+      y >= roomY &&
+      y <= roomY + roomLength
+    ) {
+      setIsDragging(true);
+      setDragOffset({
+        x: x - roomX,
+        y: y - roomY,
+      });
+    }
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDragging || !selectedRoom || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const gridSize = 20;
+    
+    // Calculate new position in grid units
+    const newX = Math.floor((e.clientX - rect.left - dragOffset.x) / gridSize);
+    const newY = Math.floor((e.clientY - rect.top - dragOffset.y) / gridSize);
+
+    // Ensure room stays within house boundaries
+    const boundedX = Math.max(0, Math.min(newX, dimensions.width - selectedRoom.width));
+    const boundedY = Math.max(0, Math.min(newY, dimensions.length - selectedRoom.length));
+
+    // Update room position
+    setRooms(rooms.map(room =>
+      room.id === selectedRoom.id
+        ? { ...room, x: boundedX, y: boundedY }
+        : room
+    ));
+  };
+
+  const handleCanvasMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      toast({
+        title: "Room Moved",
+        description: `${selectedRoom?.type} has been repositioned`,
+      });
+    }
   };
 
   useEffect(() => {
@@ -178,7 +239,7 @@ const Playground = () => {
             ref={canvasRef}
             width={800}
             height={600}
-            className="border border-mane-grid rounded"
+            className="border border-mane-grid rounded cursor-move"
             onClick={(e) => {
               const canvas = canvasRef.current;
               if (!canvas) return;
@@ -188,7 +249,6 @@ const Playground = () => {
               const y = e.clientY - rect.top;
               const gridSize = 20;
               
-              // Find clicked room
               const clickedRoom = rooms.find(room => {
                 const roomX = room.x * gridSize;
                 const roomY = room.y * gridSize;
@@ -201,6 +261,10 @@ const Playground = () => {
               
               setSelectedRoom(clickedRoom || null);
             }}
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+            onMouseLeave={handleCanvasMouseUp}
           />
         </div>
       </div>
@@ -227,6 +291,16 @@ const Playground = () => {
                   const newWidth = Number(e.target.value);
                   if (newWidth <= 0) return;
                   
+                  // Check if new width fits within house
+                  if (selectedRoom.x + newWidth > dimensions.width) {
+                    toast({
+                      title: "Error",
+                      description: "New width exceeds house dimensions",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  
                   const updatedRooms = rooms.map(room => 
                     room.id === selectedRoom.id 
                       ? { ...room, width: newWidth }
@@ -246,6 +320,16 @@ const Playground = () => {
                 onChange={(e) => {
                   const newLength = Number(e.target.value);
                   if (newLength <= 0) return;
+                  
+                  // Check if new length fits within house
+                  if (selectedRoom.y + newLength > dimensions.length) {
+                    toast({
+                      title: "Error",
+                      description: "New length exceeds house dimensions",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
                   
                   const updatedRooms = rooms.map(room => 
                     room.id === selectedRoom.id 
