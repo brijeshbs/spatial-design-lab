@@ -30,7 +30,7 @@ export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
       </div>
       <button
         onClick={handleRotateLeft}
-        className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-mane-secondary text-white flex items-center justify-center hover:bg-mane-secondary/80 transition-colors shadow-md"
+        className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-[#6366F1] text-white flex items-center justify-center hover:bg-[#4F46E5] transition-colors shadow-lg"
         aria-label="Rotate Left"
       >
         <svg 
@@ -38,10 +38,11 @@ export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
           width="24" 
           height="24" 
           stroke="currentColor" 
-          strokeWidth="2" 
+          strokeWidth="2.5" 
           fill="none" 
           strokeLinecap="round" 
           strokeLinejoin="round"
+          className="transform rotate-1"
         >
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
           <path d="M3 3v5h5" />
@@ -49,7 +50,7 @@ export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
       </button>
       <button
         onClick={handleRotateRight}
-        className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-mane-secondary text-white flex items-center justify-center hover:bg-mane-secondary/80 transition-colors shadow-md"
+        className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-[#6366F1] text-white flex items-center justify-center hover:bg-[#4F46E5] transition-colors shadow-lg"
         aria-label="Rotate Right"
       >
         <svg 
@@ -57,11 +58,11 @@ export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
           width="24" 
           height="24" 
           stroke="currentColor" 
-          strokeWidth="2" 
+          strokeWidth="2.5" 
           fill="none" 
           strokeLinecap="round" 
           strokeLinejoin="round"
-          className="transform -scale-x-100"
+          className="transform -scale-x-100 rotate-1"
         >
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
           <path d="M3 3v5h5" />
