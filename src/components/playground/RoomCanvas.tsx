@@ -39,6 +39,10 @@ export const RoomCanvas = ({
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const gridSize = 20;
     
+    // Translate to create margin for dimensions
+    ctx.save();
+    ctx.translate(50, 50);
+    
     drawPlotBorder(ctx, dimensions, gridSize);
     drawPlotDimensions(ctx, dimensions, gridSize);
 
@@ -75,7 +79,8 @@ export const RoomCanvas = ({
         drawRoomHandles(ctx, room, gridSize);
       }
     });
-
+    
+    ctx.restore();
   }, [rooms, selectedRoom, dimensions, rotation]);
 
   return (
