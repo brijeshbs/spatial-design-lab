@@ -31,20 +31,25 @@ export const RoomCanvas = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Set canvas size based on plot dimensions
+    canvas.width = Math.max(800, dimensions.width * 20 + 100);  // Add padding
+    canvas.height = Math.max(600, dimensions.length * 20 + 100); // Add padding
+
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const gridSize = 20;
     
-    // Draw plot border
+    // Draw plot border with all sides
     ctx.strokeStyle = "#2C3E50";
     ctx.lineWidth = 2;
-    ctx.strokeRect(
-      0,
-      0,
-      dimensions.width * gridSize,
-      dimensions.length * gridSize
-    );
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(dimensions.width * gridSize, 0); // Top
+    ctx.lineTo(dimensions.width * gridSize, dimensions.length * gridSize); // Right
+    ctx.lineTo(0, dimensions.length * gridSize); // Bottom
+    ctx.lineTo(0, 0); // Left
+    ctx.stroke();
     
     // Draw plot dimensions
     ctx.fillStyle = "#2C3E50";
@@ -127,8 +132,8 @@ export const RoomCanvas = ({
     // Draw compass in the bottom right corner with padding
     const compass = new Compass({ 
       size: 60, 
-      x: canvas.width - 50,  // Adjusted position
-      y: canvas.height - 50  // Adjusted position
+      x: canvas.width - 80,  // Adjusted position with more padding
+      y: canvas.height - 80  // Adjusted position with more padding
     });
     compass.draw(ctx);
 

@@ -31,17 +31,31 @@ export const useRoomOperations = (dimensions: { width: number; length: number })
     let newX = room.x;
     let newY = room.y;
 
+    const minSize = 5; // Minimum room size
+
     // Calculate new dimensions based on resize edge
     switch (edge) {
       case 'right':
-        newWidth = Math.max(5, Math.min(room.width + deltaX / gridSize, dimensions.width - room.x));
+        newWidth = Math.max(minSize, Math.min(
+          room.width + deltaX / gridSize,
+          dimensions.width - room.x
+        ));
         break;
       case 'bottom':
-        newLength = Math.max(5, Math.min(room.length + deltaY / gridSize, dimensions.length - room.y));
+        newLength = Math.max(minSize, Math.min(
+          room.length + deltaY / gridSize,
+          dimensions.length - room.y
+        ));
         break;
       case 'bottomRight':
-        newWidth = Math.max(5, Math.min(room.width + deltaX / gridSize, dimensions.width - room.x));
-        newLength = Math.max(5, Math.min(room.length + deltaY / gridSize, dimensions.length - room.y));
+        newWidth = Math.max(minSize, Math.min(
+          room.width + deltaX / gridSize,
+          dimensions.width - room.x
+        ));
+        newLength = Math.max(minSize, Math.min(
+          room.length + deltaY / gridSize,
+          dimensions.length - room.y
+        ));
         break;
     }
 
@@ -60,8 +74,8 @@ export const useRoomOperations = (dimensions: { width: number; length: number })
     // Ensure room stays within plot boundaries
     newWidth = Math.min(newWidth, dimensions.width - newX);
     newLength = Math.min(newLength, dimensions.length - newY);
-    newX = Math.max(0, Math.min(newX, dimensions.width - 5));
-    newY = Math.max(0, Math.min(newY, dimensions.length - 5));
+    newX = Math.max(0, Math.min(newX, dimensions.width - minSize));
+    newY = Math.max(0, Math.min(newY, dimensions.length - minSize));
 
     return { ...room, width: newWidth, length: newLength, x: newX, y: newY };
   };
