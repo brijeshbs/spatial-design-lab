@@ -190,20 +190,25 @@ export const useRoomManagement = (dimensions: { width: number; length: number })
     }
   };
 
-  const handleRoomUpdate = (updatedRoom: Room) => {
-    setRooms(rooms.map(room => 
-      room.id === updatedRoom.id ? updatedRoom : room
-    ));
-  };
-
   return {
     rooms,
+    setRooms,
     selectedRoom,
+    setSelectedRoom,
+    isDragging,
+    setIsDragging,
+    isResizing,
+    setIsResizing,
+    resizeHandle,
+    setResizeHandle,
+    dragOffset,
+    setDragOffset,
     handleRoomMove,
     handleRoomResize,
-    handleRoomUpdate,
-    handleCanvasMouseDown,
-    handleCanvasMouseMove,
-    handleCanvasMouseUp,
+    handleRoomUpdate: (updatedRoom: Room) => {
+      setRooms(rooms.map(room => 
+        room.id === updatedRoom.id ? updatedRoom : room
+      ));
+    },
   };
 };
