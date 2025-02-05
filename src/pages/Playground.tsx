@@ -13,14 +13,25 @@ interface Room {
   y: number;
 }
 
-const DEFAULT_ROOM_SIZES = {
+interface ResizeHandle {
+  room: Room;
+  edge: 'top' | 'right' | 'bottom' | 'left' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+  startX: number;
+  startY: number;
+  startWidth: number;
+  startHeight: number;
+  startRoomX: number;
+  startRoomY: number;
+}
+
+const ROOM_TYPES = {
   "Master Bedroom": { width: 16, length: 14 },
   "Second Bedroom": { width: 14, length: 12 },
   "Children's Room": { width: 12, length: 10 },
   "Living Room": { width: 20, length: 16 },
-  Kitchen: { width: 12, length: 10 },
-  Bathroom: { width: 8, length: 6 },
-  Balcony: { width: 10, length: 6 },
+  "Kitchen": { width: 12, length: 10 },
+  "Bathroom": { width: 8, length: 6 },
+  "Balcony": { width: 10, length: 6 },
 };
 
 const Playground = () => {
@@ -28,102 +39,184 @@ const Playground = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeHandle, setResizeHandle] = useState<ResizeHandle | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const generateInitialLayout = (dimensions: { width: number; length: number }) => {
-    setDimensions(dimensions);
-    const newRooms: Room[] = [];
-    let currentX = 0;
-    let currentY = 0;
-
-    Object.entries(DEFAULT_ROOM_SIZES).forEach(([type, size]) => {
-      if (currentX + size.width > dimensions.width) {
-        currentX = 0;
-        currentY += size.length;
-      }
-      
-      if (currentY + size.length <= dimensions.length) {
-        newRooms.push({
-          id: Math.random().toString(36).substr(2, 9),
-          type,
-          width: size.width,
-          length: size.length,
-          x: currentX,
-          y: currentY,
-        });
-        currentX += size.width;
-      } else {
-        toast({
-          title: "Warning",
-          description: `${type} couldn't fit in the layout`,
-          variant: "destructive",
-        });
-      }
+  const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
+    setDimensions({ width, length });
+    const newRooms: Room[] = roomTypes.map((type, index) => {
+      const defaultSize = ROOM_TYPES[type as keyof typeof ROOM_TYPES];
+      return {
+        id: Math.random().toString(36).substr(2, 9),
+        type,
+        width: defaultSize.width,
+        length: defaultSize.length,
+        x: 0,
+        y: index * defaultSize.length,
+      };
     });
-
     setRooms(newRooms);
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas || !selectedRoom) return;
+    if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const gridSize = 20;
 
-    // Check if click is within selected room
-    const roomX = selectedRoom.x * gridSize;
-    const roomY = selectedRoom.y * gridSize;
-    const roomWidth = selectedRoom.width * gridSize;
-    const roomLength = selectedRoom.length * gridSize;
+    // Check for resize handles first
+    for (const room of rooms) {
+      const roomX = room.x * gridSize;
+      const roomY = room.y * gridSize;
+      const roomWidth = room.width * gridSize;
+      const roomLength = room.length * gridSize;
+      const handleSize = 8;
 
-    if (
-      x >= roomX &&
-      x <= roomX + roomWidth &&
-      y >= roomY &&
-      y <= roomY + roomLength
-    ) {
+      // Check corners first (they take precedence)
+      if (Math.abs(x - (roomX + roomWidth)) <= handleSize && Math.abs(y - (roomY + roomLength)) <= handleSize) {
+        setIsResizing(true);
+        setResizeHandle({
+          room,
+          edge: 'bottomRight',
+          startX: x,
+          startY: y,
+          startWidth: room.width,
+          startHeight: room.length,
+          startRoomX: room.x,
+          startRoomY: room.y,
+        });
+        return;
+      }
+
+      // Then check edges
+      if (Math.abs(x - (roomX + roomWidth)) <= handleSize && y >= roomY && y <= roomY + roomLength) {
+        setIsResizing(true);
+        setResizeHandle({
+          room,
+          edge: 'right',
+          startX: x,
+          startY: y,
+          startWidth: room.width,
+          startHeight: room.length,
+          startRoomX: room.x,
+          startRoomY: room.y,
+        });
+        return;
+      }
+
+      if (Math.abs(y - (roomY + roomLength)) <= handleSize && x >= roomX && x <= roomX + roomWidth) {
+        setIsResizing(true);
+        setResizeHandle({
+          room,
+          edge: 'bottom',
+          startX: x,
+          startY: y,
+          startWidth: room.width,
+          startHeight: room.length,
+          startRoomX: room.x,
+          startRoomY: room.y,
+        });
+        return;
+      }
+    }
+
+    // If not resizing, check for dragging
+    const clickedRoom = rooms.find(room => {
+      const roomX = room.x * gridSize;
+      const roomY = room.y * gridSize;
+      const roomWidth = room.width * gridSize;
+      const roomLength = room.length * gridSize;
+      
+      return x >= roomX && x <= roomX + roomWidth && 
+             y >= roomY && y <= roomY + roomLength;
+    });
+
+    if (clickedRoom) {
+      setSelectedRoom(clickedRoom);
       setIsDragging(true);
       setDragOffset({
-        x: x - roomX,
-        y: y - roomY,
+        x: x - (clickedRoom.x * gridSize),
+        y: y - (clickedRoom.y * gridSize),
       });
+    } else {
+      setSelectedRoom(null);
     }
   };
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDragging || !selectedRoom || !canvasRef.current) return;
+    if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const gridSize = 20;
-    
-    // Calculate new position in grid units
-    const newX = Math.floor((e.clientX - rect.left - dragOffset.x) / gridSize);
-    const newY = Math.floor((e.clientY - rect.top - dragOffset.y) / gridSize);
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-    // Ensure room stays within house boundaries
-    const boundedX = Math.max(0, Math.min(newX, dimensions.width - selectedRoom.width));
-    const boundedY = Math.max(0, Math.min(newY, dimensions.length - selectedRoom.length));
+    if (isResizing && resizeHandle) {
+      const deltaX = x - resizeHandle.startX;
+      const deltaY = y - resizeHandle.startY;
 
-    // Update room position
-    setRooms(rooms.map(room =>
-      room.id === selectedRoom.id
-        ? { ...room, x: boundedX, y: boundedY }
-        : room
-    ));
+      const newRooms = rooms.map(room => {
+        if (room.id === resizeHandle.room.id) {
+          let newWidth = room.width;
+          let newLength = room.length;
+
+          if (resizeHandle.edge.includes('right')) {
+            newWidth = Math.max(5, resizeHandle.startWidth + Math.floor(deltaX / gridSize));
+          }
+          if (resizeHandle.edge.includes('bottom')) {
+            newLength = Math.max(5, resizeHandle.startHeight + Math.floor(deltaY / gridSize));
+          }
+
+          return {
+            ...room,
+            width: Math.min(newWidth, dimensions.width - room.x),
+            length: Math.min(newLength, dimensions.length - room.y),
+          };
+        }
+        return room;
+      });
+
+      setRooms(newRooms);
+    } else if (isDragging && selectedRoom) {
+      const newX = Math.floor((x - dragOffset.x) / gridSize);
+      const newY = Math.floor((y - dragOffset.y) / gridSize);
+
+      const boundedX = Math.max(0, Math.min(newX, dimensions.width - selectedRoom.width));
+      const boundedY = Math.max(0, Math.min(newY, dimensions.length - selectedRoom.length));
+
+      setRooms(rooms.map(room =>
+        room.id === selectedRoom.id
+          ? { ...room, x: boundedX, y: boundedY }
+          : room
+      ));
+    }
   };
 
   const handleCanvasMouseUp = () => {
     if (isDragging) {
       setIsDragging(false);
-      toast({
-        title: "Room Moved",
-        description: `${selectedRoom?.type} has been repositioned`,
-      });
+      if (selectedRoom) {
+        toast({
+          title: "Room Moved",
+          description: `${selectedRoom.type} has been repositioned`,
+        });
+      }
+    }
+    if (isResizing) {
+      setIsResizing(false);
+      setResizeHandle(null);
+      if (selectedRoom) {
+        toast({
+          title: "Room Resized",
+          description: `${selectedRoom.type} has been resized`,
+        });
+      }
     }
   };
 
@@ -163,15 +256,20 @@ const Playground = () => {
 
     // Draw rooms
     rooms.forEach((room) => {
-      ctx.fillStyle = selectedRoom?.id === room.id ? "#3498DB33" : "#2C3E5033";
+      const isSelected = selectedRoom?.id === room.id;
+      
+      // Draw room
+      ctx.fillStyle = isSelected ? "#3498DB33" : "#2C3E5033";
       ctx.fillRect(
         room.x * gridSize,
         room.y * gridSize,
         room.width * gridSize,
         room.length * gridSize
       );
+      
+      // Draw room border
       ctx.strokeStyle = "#2C3E50";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = isSelected ? 2 : 1;
       ctx.strokeRect(
         room.x * gridSize,
         room.y * gridSize,
@@ -187,52 +285,34 @@ const Playground = () => {
         room.x * gridSize + 5,
         room.y * gridSize + 20
       );
+
+      // Draw resize handles if room is selected
+      if (isSelected) {
+        const handleSize = 4;
+        ctx.fillStyle = "#3498DB";
+        
+        // Corner handles
+        ctx.fillRect(room.x * gridSize - handleSize, room.y * gridSize - handleSize, handleSize * 2, handleSize * 2);
+        ctx.fillRect((room.x + room.width) * gridSize - handleSize, room.y * gridSize - handleSize, handleSize * 2, handleSize * 2);
+        ctx.fillRect(room.x * gridSize - handleSize, (room.y + room.length) * gridSize - handleSize, handleSize * 2, handleSize * 2);
+        ctx.fillRect((room.x + room.width) * gridSize - handleSize, (room.y + room.length) * gridSize - handleSize, handleSize * 2, handleSize * 2);
+        
+        // Edge handles
+        ctx.fillRect((room.x + room.width/2) * gridSize - handleSize, room.y * gridSize - handleSize, handleSize * 2, handleSize * 2);
+        ctx.fillRect((room.x + room.width) * gridSize - handleSize, (room.y + room.length/2) * gridSize - handleSize, handleSize * 2, handleSize * 2);
+        ctx.fillRect((room.x + room.width/2) * gridSize - handleSize, (room.y + room.length) * gridSize - handleSize, handleSize * 2, handleSize * 2);
+        ctx.fillRect(room.x * gridSize - handleSize, (room.y + room.length/2) * gridSize - handleSize, handleSize * 2, handleSize * 2);
+      }
     });
   }, [rooms, selectedRoom, dimensions]);
 
   return (
     <div className="min-h-screen bg-mane-background flex">
-      {/* Left Sidebar - Components */}
       <div className="w-64 bg-white p-4 shadow-lg">
         <h2 className="text-xl font-bold text-mane-primary mb-4">Components</h2>
         <RoomParameters onGenerate={generateInitialLayout} />
-        <div className="space-y-2 mt-4">
-          {Object.keys(DEFAULT_ROOM_SIZES).map((roomType) => (
-            <Button
-              key={roomType}
-              onClick={() => {
-                const defaultSize = DEFAULT_ROOM_SIZES[roomType as keyof typeof DEFAULT_ROOM_SIZES];
-                const totalArea = rooms.reduce((sum, room) => sum + room.width * room.length, 0);
-                const newRoomArea = defaultSize.width * defaultSize.length;
-                
-                if (totalArea + newRoomArea > dimensions.width * dimensions.length) {
-                  toast({
-                    title: "Error",
-                    description: "Not enough space for new room",
-                    variant: "destructive",
-                  });
-                  return;
-                }
-                
-                const newRoom: Room = {
-                  id: Math.random().toString(36).substr(2, 9),
-                  type: roomType,
-                  ...defaultSize,
-                  x: 0,
-                  y: 0,
-                };
-                setRooms([...rooms, newRoom]);
-              }}
-              className="w-full justify-start"
-              variant="outline"
-            >
-              {roomType}
-            </Button>
-          ))}
-        </div>
       </div>
 
-      {/* Main Canvas Area */}
       <div className="flex-1 p-8">
         <div className="bg-white rounded-lg shadow-lg p-4">
           <canvas
@@ -240,27 +320,6 @@ const Playground = () => {
             width={800}
             height={600}
             className="border border-mane-grid rounded cursor-move"
-            onClick={(e) => {
-              const canvas = canvasRef.current;
-              if (!canvas) return;
-              
-              const rect = canvas.getBoundingClientRect();
-              const x = e.clientX - rect.left;
-              const y = e.clientY - rect.top;
-              const gridSize = 20;
-              
-              const clickedRoom = rooms.find(room => {
-                const roomX = room.x * gridSize;
-                const roomY = room.y * gridSize;
-                const roomWidth = room.width * gridSize;
-                const roomLength = room.length * gridSize;
-                
-                return x >= roomX && x <= roomX + roomWidth && 
-                       y >= roomY && y <= roomY + roomLength;
-              });
-              
-              setSelectedRoom(clickedRoom || null);
-            }}
             onMouseDown={handleCanvasMouseDown}
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
@@ -269,7 +328,6 @@ const Playground = () => {
         </div>
       </div>
 
-      {/* Right Sidebar - Parameters */}
       <div className="w-64 bg-white p-4 shadow-lg">
         <h2 className="text-xl font-bold text-mane-primary mb-4">Parameters</h2>
         {selectedRoom && (
@@ -291,7 +349,6 @@ const Playground = () => {
                   const newWidth = Number(e.target.value);
                   if (newWidth <= 0) return;
                   
-                  // Check if new width fits within house
                   if (selectedRoom.x + newWidth > dimensions.width) {
                     toast({
                       title: "Error",
@@ -321,7 +378,6 @@ const Playground = () => {
                   const newLength = Number(e.target.value);
                   if (newLength <= 0) return;
                   
-                  // Check if new length fits within house
                   if (selectedRoom.y + newLength > dimensions.length) {
                     toast({
                       title: "Error",

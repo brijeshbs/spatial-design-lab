@@ -29,14 +29,7 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
-  // Calculate total area and number of possible rooms
-  const totalArea = dimensions.width * dimensions.length;
-  const averageRoomArea = Object.values(ROOM_TYPES).reduce((sum, room) => sum + (room.width * room.length), 0) / Object.keys(ROOM_TYPES).length;
-  const suggestedRoomCount = Math.floor(totalArea / averageRoomArea);
-
   const handleToggleRoom = (roomType: string) => {
-    let newRoomTypes: string[];
-    
     if (roomType === "Living Room") {
       toast({
         title: "Cannot Modify Living Room",
@@ -47,8 +40,7 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
     }
 
     // Add the selected room type
-    newRoomTypes = [...selectedRoomTypes, roomType];
-    
+    const newRoomTypes = [...selectedRoomTypes, roomType];
     setSelectedRoomTypes(newRoomTypes);
     
     // Calculate total area of selected rooms
@@ -57,7 +49,7 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
       return sum + (room.width * room.length);
     }, 0);
 
-    if (totalRoomArea > totalArea) {
+    if (totalRoomArea > dimensions.width * dimensions.length) {
       toast({
         title: "Warning",
         description: "Total room area exceeds house dimensions. Some rooms may not fit.",
@@ -67,7 +59,6 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
   };
 
   const handleRemoveRoom = (index: number) => {
-    // Don't allow removing Living Room
     if (selectedRoomTypes[index] === "Living Room") {
       toast({
         title: "Cannot Remove Living Room",
@@ -129,13 +120,6 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
           min={20}
           max={100}
         />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Suggested Number of Rooms</Label>
-        <div className="text-sm text-gray-600">
-          Based on your dimensions, we suggest {suggestedRoomCount} rooms
-        </div>
       </div>
 
       <div className="space-y-2">
