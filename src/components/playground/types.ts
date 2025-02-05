@@ -17,6 +17,11 @@ export interface Component {
   rotation: number;
 }
 
+export interface Position {
+  x: number;
+  y: number;
+}
+
 export interface ResizeHandle {
   room: Room;
   edge: 'top' | 'right' | 'bottom' | 'left' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';

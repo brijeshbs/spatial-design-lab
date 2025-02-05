@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { Position } from "../types";
 
 interface CanvasViewportProps {
   children: React.ReactNode;
