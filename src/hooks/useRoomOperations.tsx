@@ -3,8 +3,19 @@ import { toast } from "@/components/ui/use-toast";
 
 export const useRoomOperations = (dimensions: { width: number; length: number }) => {
   const handleRoomMove = (room: Room, newX: number, newY: number) => {
+    // Ensure rooms stay within plot boundaries
     const boundedX = Math.max(0, Math.min(newX, dimensions.width - room.width));
     const boundedY = Math.max(0, Math.min(newY, dimensions.length - room.length));
+
+    // If the room would go outside boundaries, show a warning
+    if (newX !== boundedX || newY !== boundedY) {
+      toast({
+        title: "Room Position Constrained",
+        description: "Rooms must stay within the plot boundaries",
+        variant: "warning",
+      });
+    }
+
     return { ...room, x: boundedX, y: boundedY };
   };
 
@@ -20,19 +31,33 @@ export const useRoomOperations = (dimensions: { width: number; length: number })
     let newX = room.x;
     let newY = room.y;
 
+    // Calculate new dimensions based on resize edge
     switch (edge) {
       case 'right':
-        newWidth = Math.max(5, room.width + deltaX / gridSize);
+        newWidth = Math.max(5, Math.min(room.width + deltaX / gridSize, dimensions.width - room.x));
         break;
       case 'bottom':
-        newLength = Math.max(5, room.length + deltaY / gridSize);
+        newLength = Math.max(5, Math.min(room.length + deltaY / gridSize, dimensions.length - room.y));
         break;
       case 'bottomRight':
-        newWidth = Math.max(5, room.width + deltaX / gridSize);
-        newLength = Math.max(5, room.length + deltaY / gridSize);
+        newWidth = Math.max(5, Math.min(room.width + deltaX / gridSize, dimensions.width - room.x));
+        newLength = Math.max(5, Math.min(room.length + deltaY / gridSize, dimensions.length - room.y));
         break;
     }
 
+    // If the room would exceed boundaries, show a warning
+    if (
+      newX + newWidth > dimensions.width ||
+      newY + newLength > dimensions.length
+    ) {
+      toast({
+        title: "Room Size Constrained",
+        description: "Room dimensions must stay within plot boundaries",
+        variant: "warning",
+      });
+    }
+
+    // Ensure room stays within plot boundaries
     newWidth = Math.min(newWidth, dimensions.width - newX);
     newLength = Math.min(newLength, dimensions.length - newY);
     newX = Math.max(0, Math.min(newX, dimensions.width - 5));
