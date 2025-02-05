@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
+import { RoomParameters } from "@/components/RoomParameters";
 
 interface Room {
   id: string;
@@ -28,28 +29,41 @@ const Playground = () => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const addRoom = (type: string) => {
-    const defaultSize = DEFAULT_ROOM_SIZES[type as keyof typeof DEFAULT_ROOM_SIZES];
-    const newRoom: Room = {
-      id: Math.random().toString(36).substr(2, 9),
-      type,
-      width: defaultSize.width,
-      length: defaultSize.length,
-      x: 0,
-      y: 0,
-    };
+  const generateInitialLayout = (dimensions: { width: number; length: number }) => {
+    setDimensions(dimensions);
+    const newRooms: Room[] = [];
+    let currentX = 0;
+    let currentY = 0;
 
-    // Check if room fits within house dimensions
-    if (newRoom.width > dimensions.width || newRoom.length > dimensions.length) {
-      toast({
-        title: "Error",
-        description: "Room dimensions exceed house dimensions",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Try to fit rooms in a grid pattern
+    Object.entries(DEFAULT_ROOM_SIZES).forEach(([type, size]) => {
+      // Check if room fits in current row
+      if (currentX + size.width > dimensions.width) {
+        currentX = 0;
+        currentY += size.length;
+      }
+      
+      // Check if room fits in house
+      if (currentY + size.length <= dimensions.length) {
+        newRooms.push({
+          id: Math.random().toString(36).substr(2, 9),
+          type,
+          width: size.width,
+          length: size.length,
+          x: currentX,
+          y: currentY,
+        });
+        currentX += size.width;
+      } else {
+        toast({
+          title: "Warning",
+          description: `${type} couldn't fit in the layout`,
+          variant: "destructive",
+        });
+      }
+    });
 
-    setRooms([...rooms, newRoom]);
+    setRooms(newRooms);
   };
 
   useEffect(() => {
@@ -81,6 +95,11 @@ const Playground = () => {
       ctx.stroke();
     }
 
+    // Draw house outline
+    ctx.strokeStyle = "#2C3E50";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, dimensions.width * gridSize, dimensions.length * gridSize);
+
     // Draw rooms
     rooms.forEach((room) => {
       ctx.fillStyle = selectedRoom?.id === room.id ? "#3498DB33" : "#2C3E5033";
@@ -108,18 +127,41 @@ const Playground = () => {
         room.y * gridSize + 20
       );
     });
-  }, [rooms, selectedRoom]);
+  }, [rooms, selectedRoom, dimensions]);
 
   return (
     <div className="min-h-screen bg-mane-background flex">
       {/* Left Sidebar - Components */}
       <div className="w-64 bg-white p-4 shadow-lg">
         <h2 className="text-xl font-bold text-mane-primary mb-4">Components</h2>
-        <div className="space-y-2">
+        <RoomParameters onGenerate={generateInitialLayout} />
+        <div className="space-y-2 mt-4">
           {Object.keys(DEFAULT_ROOM_SIZES).map((roomType) => (
             <Button
               key={roomType}
-              onClick={() => addRoom(roomType)}
+              onClick={() => {
+                const defaultSize = DEFAULT_ROOM_SIZES[roomType as keyof typeof DEFAULT_ROOM_SIZES];
+                const totalArea = rooms.reduce((sum, room) => sum + room.width * room.length, 0);
+                const newRoomArea = defaultSize.width * defaultSize.length;
+                
+                if (totalArea + newRoomArea > dimensions.width * dimensions.length) {
+                  toast({
+                    title: "Error",
+                    description: "Not enough space for new room",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
+                const newRoom: Room = {
+                  id: Math.random().toString(36).substr(2, 9),
+                  type: roomType,
+                  ...defaultSize,
+                  x: 0,
+                  y: 0,
+                };
+                setRooms([...rooms, newRoom]);
+              }}
               className="w-full justify-start"
               variant="outline"
             >
@@ -131,40 +173,34 @@ const Playground = () => {
 
       {/* Main Canvas Area */}
       <div className="flex-1 p-8">
-        <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-          <div className="flex gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-mane-primary mb-1">
-                Width (ft)
-              </label>
-              <Input
-                type="number"
-                value={dimensions.width}
-                onChange={(e) =>
-                  setDimensions({ ...dimensions, width: Number(e.target.value) })
-                }
-                className="w-32"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-mane-primary mb-1">
-                Length (ft)
-              </label>
-              <Input
-                type="number"
-                value={dimensions.length}
-                onChange={(e) =>
-                  setDimensions({ ...dimensions, length: Number(e.target.value) })
-                }
-                className="w-32"
-              />
-            </div>
-          </div>
+        <div className="bg-white rounded-lg shadow-lg p-4">
           <canvas
             ref={canvasRef}
             width={800}
             height={600}
             className="border border-mane-grid rounded"
+            onClick={(e) => {
+              const canvas = canvasRef.current;
+              if (!canvas) return;
+              
+              const rect = canvas.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              const gridSize = 20;
+              
+              // Find clicked room
+              const clickedRoom = rooms.find(room => {
+                const roomX = room.x * gridSize;
+                const roomY = room.y * gridSize;
+                const roomWidth = room.width * gridSize;
+                const roomLength = room.length * gridSize;
+                
+                return x >= roomX && x <= roomX + roomWidth && 
+                       y >= roomY && y <= roomY + roomLength;
+              });
+              
+              setSelectedRoom(clickedRoom || null);
+            }}
           />
         </div>
       </div>
@@ -188,7 +224,15 @@ const Playground = () => {
                 type="number"
                 value={selectedRoom.width}
                 onChange={(e) => {
-                  // Implement room resize logic
+                  const newWidth = Number(e.target.value);
+                  if (newWidth <= 0) return;
+                  
+                  const updatedRooms = rooms.map(room => 
+                    room.id === selectedRoom.id 
+                      ? { ...room, width: newWidth }
+                      : room
+                  );
+                  setRooms(updatedRooms);
                 }}
               />
             </div>
@@ -200,7 +244,15 @@ const Playground = () => {
                 type="number"
                 value={selectedRoom.length}
                 onChange={(e) => {
-                  // Implement room resize logic
+                  const newLength = Number(e.target.value);
+                  if (newLength <= 0) return;
+                  
+                  const updatedRooms = rooms.map(room => 
+                    room.id === selectedRoom.id 
+                      ? { ...room, length: newLength }
+                      : room
+                  );
+                  setRooms(updatedRooms);
                 }}
               />
             </div>
