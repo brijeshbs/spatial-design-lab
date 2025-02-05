@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { RoomParameters } from "@/components/RoomParameters";
+import { Compass, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Room {
   id: string;
@@ -52,6 +54,8 @@ const Playground = () => {
   const [isResizing, setIsResizing] = useState(false);
   const [resizeHandle, setResizeHandle] = useState<ResizeHandle | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [showLeftSidebar, setShowLeftSidebar] = useState(true);
+  const [showRightSidebar, setShowRightSidebar] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
@@ -270,37 +274,43 @@ const Playground = () => {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw grid
+    // Draw infinite grid background
     const gridSize = 20;
     ctx.strokeStyle = "#E2E8F0";
     ctx.lineWidth = 0.5;
 
-    for (let x = 0; x <= canvas.width; x += gridSize) {
+    // Calculate grid offset to create infinite effect
+    const offsetX = (window.scrollX % gridSize);
+    const offsetY = (window.scrollY % gridSize);
+
+    // Draw vertical lines
+    for (let x = -offsetX; x <= canvas.width + gridSize; x += gridSize) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, canvas.height);
       ctx.stroke();
     }
 
-    for (let y = 0; y <= canvas.height; y += gridSize) {
+    // Draw horizontal lines
+    for (let y = -offsetY; y <= canvas.height + gridSize; y += gridSize) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(canvas.width, y);
       ctx.stroke();
     }
 
-    // Draw house outline with measurements
+    // Draw plot outline with measurements
     ctx.strokeStyle = "#2C3E50";
     ctx.lineWidth = 2;
     ctx.strokeRect(0, 0, dimensions.width * gridSize, dimensions.length * gridSize);
     
-    // Draw house dimensions
+    // Draw plot dimensions
     ctx.fillStyle = "#2C3E50";
     ctx.font = "12px Inter";
     ctx.fillText(`${dimensions.width} ft`, dimensions.width * gridSize / 2 - 20, -5);
     ctx.fillText(`${dimensions.length} ft`, -25, dimensions.length * gridSize / 2);
 
-    // Draw rooms
+    // Draw rooms with their measurements
     rooms.forEach((room) => {
       const isSelected = selectedRoom?.id === room.id;
       const roomColor = ROOM_COLORS[room.type as keyof typeof ROOM_COLORS] || "#E2E8F0";
@@ -333,21 +343,18 @@ const Playground = () => {
         room.y * gridSize + 20
       );
 
-      // Draw width measurement
+      // Draw measurements
       ctx.fillText(
         `${room.width} ft`,
         room.x * gridSize + (room.width * gridSize / 2) - 15,
         room.y * gridSize - 5
       );
-
-      // Draw length measurement
       ctx.fillText(
         `${room.length} ft`,
         room.x * gridSize - 25,
         room.y * gridSize + (room.length * gridSize / 2)
       );
 
-      // Draw resize handles if room is selected
       if (isSelected) {
         const handleSize = 8;
         ctx.fillStyle = "#3498DB";
@@ -383,15 +390,68 @@ const Playground = () => {
         });
       }
     });
+
+    // Draw compass
+    const compassSize = 60;
+    const compassX = canvas.width - compassSize - 20;
+    const compassY = canvas.height - compassSize - 20;
+    
+    // Draw compass circle
+    ctx.beginPath();
+    ctx.arc(compassX, compassY, compassSize/2, 0, 2 * Math.PI);
+    ctx.fillStyle = "white";
+    ctx.fill();
+    ctx.strokeStyle = "#2C3E50";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw compass needle
+    ctx.beginPath();
+    ctx.moveTo(compassX, compassY + compassSize/3);
+    ctx.lineTo(compassX, compassY - compassSize/3);
+    ctx.strokeStyle = "#E74C3C";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw N indicator
+    ctx.fillStyle = "#2C3E50";
+    ctx.font = "bold 14px Inter";
+    ctx.textAlign = "center";
+    ctx.fillText("N", compassX, compassY - compassSize/2 - 5);
+
   }, [rooms, selectedRoom, dimensions]);
 
   return (
-    <div className="min-h-screen bg-mane-background flex">
-      <div className="w-64 bg-white p-4 shadow-lg">
-        <h2 className="text-xl font-bold text-mane-primary mb-4">Components</h2>
+    <div className="min-h-screen bg-mane-background relative overflow-hidden">
+      {/* Left Sidebar */}
+      <div className={cn(
+        "fixed left-4 top-4 bg-white p-4 shadow-lg rounded-lg transition-transform duration-300 z-10",
+        !showLeftSidebar && "-translate-x-full"
+      )}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-mane-primary">Components</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowLeftSidebar(!showLeftSidebar)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
         <RoomParameters onGenerate={generateInitialLayout} />
       </div>
 
+      {/* Toggle button for left sidebar */}
+      {!showLeftSidebar && (
+        <Button
+          className="fixed left-4 top-4 z-10"
+          onClick={() => setShowLeftSidebar(true)}
+        >
+          Show Components
+        </Button>
+      )}
+
+      {/* Main Canvas Area */}
       <div className="flex-1 p-8">
         <div className="bg-white rounded-lg shadow-lg p-4">
           <canvas
@@ -407,8 +467,21 @@ const Playground = () => {
         </div>
       </div>
 
-      <div className="w-64 bg-white p-4 shadow-lg">
-        <h2 className="text-xl font-bold text-mane-primary mb-4">Parameters</h2>
+      {/* Right Sidebar */}
+      <div className={cn(
+        "fixed right-4 top-4 bg-white p-4 shadow-lg rounded-lg transition-transform duration-300 z-10",
+        !showRightSidebar && "translate-x-full"
+      )}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-mane-primary">Parameters</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowRightSidebar(!showRightSidebar)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
         {selectedRoom && (
           <div className="space-y-4">
             <div>
@@ -478,6 +551,16 @@ const Playground = () => {
           </div>
         )}
       </div>
+
+      {/* Toggle button for right sidebar */}
+      {!showRightSidebar && (
+        <Button
+          className="fixed right-4 top-4 z-10"
+          onClick={() => setShowRightSidebar(true)}
+        >
+          Show Parameters
+        </Button>
+      )}
     </div>
   );
 };
