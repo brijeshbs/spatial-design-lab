@@ -96,7 +96,7 @@ export const CanvasArea = ({
         />
       </div>
       <div className="fixed bottom-8 right-8 z-50">
-        <Compass size={60} rotation={rotation} onRotate={setRotation} />
+        <Compass size={80} rotation={rotation} onRotate={setRotation} />
       </div>
     </div>
   );

@@ -39,20 +39,20 @@ export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
       <div 
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
         style={{ 
-          width: size, 
-          height: size,
+          width: size * 1.5, 
+          height: size * 1.5,
           transform: `rotate(${rotation}deg)`
         }}
       >
         <div className="absolute inset-0 rounded-full bg-white border-2 border-mane-primary shadow-md">
           {/* Cardinal Directions */}
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 font-bold text-mane-primary">N</div>
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 font-bold text-mane-primary">S</div>
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 font-bold text-mane-primary">E</div>
-          <div className="absolute left-2 top-1/2 -translate-y-1/2 font-bold text-mane-primary">W</div>
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 font-bold text-lg text-mane-primary">N</div>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 font-bold text-lg text-mane-primary">S</div>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 font-bold text-lg text-mane-primary">E</div>
+          <div className="absolute left-2 top-1/2 -translate-y-1/2 font-bold text-lg text-mane-primary">W</div>
           
           {/* Compass Needle */}
-          <div className="absolute h-[90%] w-0.5 left-1/2 -translate-x-1/2 top-[5%]">
+          <div className="absolute h-[90%] w-1 left-1/2 -translate-x-1/2 top-[5%]">
             <div className="h-1/2 w-full bg-mane-accent" />
             <div className="h-1/2 w-full bg-mane-primary" />
           </div>
