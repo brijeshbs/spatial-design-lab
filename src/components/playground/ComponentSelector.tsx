@@ -31,21 +31,32 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
 
   const handleClick = (type: string) => {
     const componentSpec = COMPONENTS[type as keyof typeof COMPONENTS];
+    if (!componentSpec) {
+      toast({
+        title: "Error",
+        description: `Invalid component type: ${type}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newComponent: Component = {
       id: Math.random().toString(36).substr(2, 9),
       type,
       width: componentSpec.width,
       length: componentSpec.length,
-      // Place component in the center of the plot initially
       x: 200,
       y: 200,
       rotation: 0,
     };
-    onSelect(newComponent);
-    toast({
-      title: "Component Added",
-      description: `${type} has been placed on the canvas`,
-    });
+
+    if (onSelect) {
+      onSelect(newComponent);
+      toast({
+        title: "Component Added",
+        description: `${type} has been placed on the canvas`,
+      });
+    }
   };
 
   return (

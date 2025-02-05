@@ -39,6 +39,10 @@ export const CanvasArea = ({
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
   const [localComponents, setLocalComponents] = useState<Component[]>(components);
 
+  useEffect(() => {
+    setLocalComponents(components);
+  }, [components]);
+
   const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {
     setLocalComponents(prevComponents =>
       prevComponents.map(c =>
