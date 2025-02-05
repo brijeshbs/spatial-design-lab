@@ -35,11 +35,6 @@ export const RoomCanvas = ({
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const gridSize = 20;
-
-    // Draw plot outline with measurements
-    ctx.strokeStyle = "#2C3E50";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(0, 0, dimensions.width * gridSize, dimensions.length * gridSize);
     
     // Draw plot dimensions
     ctx.fillStyle = "#2C3E50";
