@@ -12,12 +12,15 @@ export class Compass {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
+    const compassX = window.innerWidth - 80;
+    const compassY = window.innerHeight - 80;
+    
     // Save current context state
     ctx.save();
     
     // Draw compass circle with fixed screen position
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size/2, 0, 2 * Math.PI);
+    ctx.arc(compassX, compassY, this.size/2, 0, 2 * Math.PI);
     ctx.fillStyle = "white";
     ctx.fill();
     ctx.strokeStyle = "#2C3E50";
@@ -25,14 +28,14 @@ export class Compass {
     ctx.stroke();
 
     // Apply rotation only to the compass needle and N indicator
-    ctx.translate(this.x, this.y);
+    ctx.translate(compassX, compassY);
     ctx.rotate((-this.rotation * Math.PI) / 180);
-    ctx.translate(-this.x, -this.y);
+    ctx.translate(-compassX, -compassY);
 
     // Draw compass needle
     ctx.beginPath();
-    ctx.moveTo(this.x, this.y + this.size/3);
-    ctx.lineTo(this.x, this.y - this.size/3);
+    ctx.moveTo(compassX, compassY + this.size/3);
+    ctx.lineTo(compassX, compassY - this.size/3);
     ctx.strokeStyle = "#E74C3C";
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -41,7 +44,7 @@ export class Compass {
     ctx.fillStyle = "#2C3E50";
     ctx.font = "bold 14px Inter";
     ctx.textAlign = "center";
-    ctx.fillText("N", this.x, this.y - this.size/2 + 15);
+    ctx.fillText("N", compassX, compassY - this.size/2 + 15);
 
     // Reset rotation for buttons
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -52,39 +55,41 @@ export class Compass {
     
     // Left rotation button
     ctx.beginPath();
-    ctx.arc(this.x - buttonDistance, this.y, buttonRadius, 0, 2 * Math.PI);
+    ctx.arc(compassX - buttonDistance, compassY, buttonRadius, 0, 2 * Math.PI);
     ctx.fillStyle = "#3498DB";
     ctx.fill();
     ctx.fillStyle = "white";
-    ctx.fillText("⟲", this.x - buttonDistance, this.y + 5);
+    ctx.fillText("⟲", compassX - buttonDistance, compassY + 5);
 
     // Right rotation button
     ctx.beginPath();
-    ctx.arc(this.x + buttonDistance, this.y, buttonRadius, 0, 2 * Math.PI);
+    ctx.arc(compassX + buttonDistance, compassY, buttonRadius, 0, 2 * Math.PI);
     ctx.fillStyle = "#3498DB";
     ctx.fill();
     ctx.fillStyle = "white";
-    ctx.fillText("⟳", this.x + buttonDistance, this.y + 5);
+    ctx.fillText("⟳", compassX + buttonDistance, compassY + 5);
     
     // Restore context state
     ctx.restore();
   }
 
   isRotationButtonClicked(x: number, y: number): 'left' | 'right' | null {
+    const compassX = window.innerWidth - 80;
+    const compassY = window.innerHeight - 80;
     const buttonDistance = this.size/2 + 25;
     const buttonRadius = 15;
     
     // Check left button
     const leftDist = Math.sqrt(
-      Math.pow(x - (this.x - buttonDistance), 2) + 
-      Math.pow(y - this.y, 2)
+      Math.pow(x - (compassX - buttonDistance), 2) + 
+      Math.pow(y - compassY, 2)
     );
     if (leftDist <= buttonRadius) return 'left';
     
     // Check right button
     const rightDist = Math.sqrt(
-      Math.pow(x - (this.x + buttonDistance), 2) + 
-      Math.pow(y - this.y, 2)
+      Math.pow(x - (compassX + buttonDistance), 2) + 
+      Math.pow(y - compassY, 2)
     );
     if (rightDist <= buttonRadius) return 'right';
     

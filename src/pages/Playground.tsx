@@ -11,6 +11,7 @@ const Playground = () => {
   const [dimensions, setDimensions] = useState({ width: 30, length: 40 });
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
+  const [showPlot, setShowPlot] = useState(false);
 
   const {
     rooms,
@@ -37,19 +38,22 @@ const Playground = () => {
       };
     });
     setRooms(newRooms);
+    setShowPlot(true);
   };
 
   return (
     <div className="absolute inset-0 overflow-visible">
-      <CanvasArea
-        rooms={rooms}
-        selectedRoom={selectedRoom}
-        dimensions={dimensions}
-        onMouseDown={handleCanvasMouseDown}
-        onMouseMove={handleCanvasMouseMove}
-        onMouseUp={handleCanvasMouseUp}
-        onMouseLeave={handleCanvasMouseUp}
-      />
+      {showPlot && (
+        <CanvasArea
+          rooms={rooms}
+          selectedRoom={selectedRoom}
+          dimensions={dimensions}
+          onMouseDown={handleCanvasMouseDown}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
+          onMouseLeave={handleCanvasMouseUp}
+        />
+      )}
 
       <LeftSidebar
         showLeftSidebar={showLeftSidebar}
