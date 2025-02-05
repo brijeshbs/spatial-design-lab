@@ -12,7 +12,7 @@ export const useRoomOperations = (dimensions: { width: number; length: number })
       toast({
         title: "Room Position Constrained",
         description: "Rooms must stay within the plot boundaries",
-        variant: "warning",
+        variant: "default"
       });
     }
 
@@ -53,7 +53,7 @@ export const useRoomOperations = (dimensions: { width: number; length: number })
       toast({
         title: "Room Size Constrained",
         description: "Room dimensions must stay within plot boundaries",
-        variant: "warning",
+        variant: "default"
       });
     }
 
