@@ -119,6 +119,7 @@ export const CanvasArea = ({
           rooms={rooms}
           selectedRoom={selectedRoom}
           dimensions={dimensions}
+          components={components}
         />
       )}
       

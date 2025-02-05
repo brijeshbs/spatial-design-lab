@@ -1,23 +1,151 @@
 import { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { Room } from './types';
+import { Room, Component } from './types';
 import { setupScene } from '@/utils/threeDUtils';
 import { createPlotStructure } from './three/PlotStructure';
 import { createRoomStructure } from './three/RoomStructure';
+import { COMPONENTS } from './constants';
 
 interface ThreeDCanvasProps {
   rooms: Room[];
   selectedRoom: Room | null;
   dimensions: { width: number; length: number };
+  components: Component[];
 }
 
-export const ThreeDCanvas = ({ rooms, selectedRoom, dimensions }: ThreeDCanvasProps) => {
+export const ThreeDCanvas = ({ rooms, selectedRoom, dimensions, components }: ThreeDCanvasProps) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
+
+  const createComponent3D = (scene: THREE.Scene, component: Component) => {
+    const componentConfig = COMPONENTS[component.type as keyof typeof COMPONENTS];
+    if (!componentConfig) return;
+
+    let geometry;
+    const material = new THREE.MeshStandardMaterial({ 
+      color: componentConfig.color,
+      metalness: 0.2,
+      roughness: 0.8
+    });
+
+    // Create different geometries based on component type
+    switch (component.type) {
+      case "Staircase":
+        geometry = new THREE.BoxGeometry(
+          componentConfig.width,
+          1.5, // Height for stairs
+          componentConfig.length
+        );
+        break;
+      case "Wall":
+        geometry = new THREE.BoxGeometry(
+          componentConfig.width,
+          2.5, // Wall height
+          componentConfig.length
+        );
+        break;
+      case "Door":
+        geometry = new THREE.BoxGeometry(
+          componentConfig.width,
+          2, // Door height
+          componentConfig.length
+        );
+        break;
+      case "Window":
+        geometry = new THREE.BoxGeometry(
+          componentConfig.width,
+          1.5, // Window height
+          componentConfig.length
+        );
+        break;
+      case "Ceiling Fan":
+      case "Wall Fan":
+        geometry = new THREE.CylinderGeometry(
+          componentConfig.width / 2,
+          componentConfig.width / 2,
+          0.2,
+          32
+        );
+        break;
+      case "Air Conditioner":
+        geometry = new THREE.BoxGeometry(
+          componentConfig.width,
+          0.8,
+          componentConfig.length
+        );
+        break;
+      case "Ceiling Light":
+      case "Wall Light":
+      case "Floor Lamp":
+        geometry = new THREE.SphereGeometry(0.3, 32, 32);
+        material.emissive = new THREE.Color(0xffff00);
+        material.emissiveIntensity = 0.5;
+        break;
+      case "Chandelier":
+        geometry = new THREE.SphereGeometry(0.5, 32, 32);
+        material.emissive = new THREE.Color(0xffff00);
+        material.emissiveIntensity = 0.8;
+        break;
+      case "Track Light":
+        geometry = new THREE.CylinderGeometry(0.2, 0.2, componentConfig.width, 32);
+        material.emissive = new THREE.Color(0xffff00);
+        material.emissiveIntensity = 0.5;
+        break;
+      default:
+        // Default box geometry for furniture
+        geometry = new THREE.BoxGeometry(
+          componentConfig.width,
+          1, // Default height
+          componentConfig.length
+        );
+    }
+
+    const mesh = new THREE.Mesh(geometry, material);
+    
+    // Position the component
+    mesh.position.set(
+      component.x + componentConfig.width / 2,
+      getComponentHeight(component.type),
+      component.y + componentConfig.length / 2
+    );
+    
+    // Apply rotation
+    mesh.rotation.y = (component.rotation * Math.PI) / 180;
+    
+    mesh.userData.isComponent = true;
+    mesh.userData.componentId = component.id;
+    scene.add(mesh);
+  };
+
+  const getComponentHeight = (type: string): number => {
+    switch (type) {
+      case "Ceiling Fan":
+      case "Ceiling Light":
+      case "Chandelier":
+      case "Track Light":
+        return 2.4; // Near ceiling
+      case "Wall Fan":
+      case "Wall Light":
+      case "Air Conditioner":
+        return 1.8; // Wall height
+      case "Floor Lamp":
+        return 0.5; // On floor
+      case "Table":
+        return 0.7;
+      case "Chair":
+        return 0.5;
+      case "Bed":
+        return 0.4;
+      case "Sofa":
+        return 0.4;
+      default:
+        return 0;
+    }
+  };
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -68,21 +196,27 @@ export const ThreeDCanvas = ({ rooms, selectedRoom, dimensions }: ThreeDCanvasPr
     };
   }, [dimensions]);
 
-  // Update rooms when they change
+  // Update rooms and components when they change
   useEffect(() => {
     if (!sceneRef.current) return;
 
-    // Remove existing room meshes
-    const roomMeshes = sceneRef.current.children.filter(
-      child => child instanceof THREE.Mesh && child.userData.isRoom
+    // Remove existing room and component meshes
+    const existingMeshes = sceneRef.current.children.filter(
+      child => child instanceof THREE.Mesh && 
+      (child.userData.isRoom || child.userData.isComponent)
     );
-    roomMeshes.forEach(mesh => sceneRef.current?.remove(mesh));
+    existingMeshes.forEach(mesh => sceneRef.current?.remove(mesh));
 
     // Add new room meshes
     rooms.forEach(room => {
       createRoomStructure(sceneRef.current!, room, selectedRoom, dimensions);
     });
-  }, [rooms, selectedRoom, dimensions]);
+
+    // Add new component meshes
+    components.forEach(component => {
+      createComponent3D(sceneRef.current!, component);
+    });
+  }, [rooms, selectedRoom, dimensions, components]);
 
   // Handle window resize
   useEffect(() => {
