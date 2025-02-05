@@ -205,6 +205,9 @@ export const useRoomManagement = (dimensions: { width: number; length: number })
     setDragOffset,
     handleRoomMove,
     handleRoomResize,
+    handleCanvasMouseDown,
+    handleCanvasMouseMove,
+    handleCanvasMouseUp,
     handleRoomUpdate: (updatedRoom: Room) => {
       setRooms(rooms.map(room => 
         room.id === updatedRoom.id ? updatedRoom : room

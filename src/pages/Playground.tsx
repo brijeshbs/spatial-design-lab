@@ -17,12 +17,10 @@ const Playground = () => {
     setRooms,
     selectedRoom,
     setSelectedRoom,
-    handleRoomMove,
-    handleRoomResize,
-    handleRoomUpdate,
     handleCanvasMouseDown,
     handleCanvasMouseMove,
     handleCanvasMouseUp,
+    handleRoomUpdate,
   } = useRoomManagement(dimensions);
 
   const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
