@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/components/ui/use-toast";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -139,27 +139,29 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
+          <PopoverContent className="w-full p-0" align="start">
             <Command>
               <CommandInput placeholder="Search room types..." />
-              <CommandEmpty>No room type found.</CommandEmpty>
-              <CommandGroup>
-                {Object.keys(ROOM_TYPES).map((roomType) => (
-                  <CommandItem
-                    key={roomType}
-                    value={roomType}
-                    onSelect={() => handleToggleRoom(roomType)}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedRoomTypes.includes(roomType) ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {roomType}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              <CommandList>
+                <CommandEmpty>No room type found.</CommandEmpty>
+                <CommandGroup>
+                  {Object.keys(ROOM_TYPES).map((roomType) => (
+                    <CommandItem
+                      key={roomType}
+                      value={roomType}
+                      onSelect={() => handleToggleRoom(roomType)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedRoomTypes.includes(roomType) ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {roomType}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
