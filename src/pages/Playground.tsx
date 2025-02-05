@@ -34,6 +34,16 @@ const ROOM_TYPES = {
   "Balcony": { width: 10, length: 6 },
 };
 
+const ROOM_COLORS = {
+  "Master Bedroom": "#9b87f5",  // Primary Purple
+  "Second Bedroom": "#FEC6A1",  // Soft Orange
+  "Children's Room": "#D3E4FD", // Soft Blue
+  "Living Room": "#F2FCE2",     // Soft Green
+  "Kitchen": "#FFDEE2",         // Soft Pink
+  "Bathroom": "#E5DEFF",        // Soft Purple
+  "Balcony": "#FEF7CD",        // Soft Yellow
+};
+
 const Playground = () => {
   const [dimensions, setDimensions] = useState({ width: 30, length: 40 });
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -158,25 +168,55 @@ const Playground = () => {
     const y = e.clientY - rect.top;
 
     if (isResizing && resizeHandle) {
-      const deltaX = x - resizeHandle.startX;
-      const deltaY = y - resizeHandle.startY;
+      const deltaX = Math.floor((x - resizeHandle.startX) / gridSize) * gridSize;
+      const deltaY = Math.floor((y - resizeHandle.startY) / gridSize) * gridSize;
 
       const newRooms = rooms.map(room => {
         if (room.id === resizeHandle.room.id) {
           let newWidth = room.width;
           let newLength = room.length;
+          let newX = room.x;
+          let newY = room.y;
 
-          if (resizeHandle.edge.includes('right')) {
-            newWidth = Math.max(5, resizeHandle.startWidth + Math.floor(deltaX / gridSize));
+          switch (resizeHandle.edge) {
+            case 'right':
+              newWidth = Math.max(5, resizeHandle.startWidth + deltaX / gridSize);
+              break;
+            case 'bottom':
+              newLength = Math.max(5, resizeHandle.startHeight + deltaY / gridSize);
+              break;
+            case 'bottomRight':
+              newWidth = Math.max(5, resizeHandle.startWidth + deltaX / gridSize);
+              newLength = Math.max(5, resizeHandle.startHeight + deltaY / gridSize);
+              break;
+            case 'left':
+              const newWidthFromLeft = resizeHandle.startWidth - deltaX / gridSize;
+              if (newWidthFromLeft >= 5) {
+                newWidth = newWidthFromLeft;
+                newX = resizeHandle.startRoomX + deltaX / gridSize;
+              }
+              break;
+            case 'top':
+              const newLengthFromTop = resizeHandle.startHeight - deltaY / gridSize;
+              if (newLengthFromTop >= 5) {
+                newLength = newLengthFromTop;
+                newY = resizeHandle.startRoomY + deltaY / gridSize;
+              }
+              break;
           }
-          if (resizeHandle.edge.includes('bottom')) {
-            newLength = Math.max(5, resizeHandle.startHeight + Math.floor(deltaY / gridSize));
-          }
+
+          // Ensure room stays within house boundaries
+          newWidth = Math.min(newWidth, dimensions.width - newX);
+          newLength = Math.min(newLength, dimensions.length - newY);
+          newX = Math.max(0, Math.min(newX, dimensions.width - 5));
+          newY = Math.max(0, Math.min(newY, dimensions.length - 5));
 
           return {
             ...room,
-            width: Math.min(newWidth, dimensions.width - room.x),
-            length: Math.min(newLength, dimensions.length - room.y),
+            width: newWidth,
+            length: newLength,
+            x: newX,
+            y: newY,
           };
         }
         return room;
@@ -257,9 +297,10 @@ const Playground = () => {
     // Draw rooms
     rooms.forEach((room) => {
       const isSelected = selectedRoom?.id === room.id;
+      const roomColor = ROOM_COLORS[room.type as keyof typeof ROOM_COLORS] || "#E2E8F0";
       
       // Draw room
-      ctx.fillStyle = isSelected ? "#3498DB33" : "#2C3E5033";
+      ctx.fillStyle = roomColor;
       ctx.fillRect(
         room.x * gridSize,
         room.y * gridSize,
@@ -268,7 +309,7 @@ const Playground = () => {
       );
       
       // Draw room border
-      ctx.strokeStyle = "#2C3E50";
+      ctx.strokeStyle = isSelected ? "#3498DB" : "#2C3E50";
       ctx.lineWidth = isSelected ? 2 : 1;
       ctx.strokeRect(
         room.x * gridSize,
@@ -288,20 +329,38 @@ const Playground = () => {
 
       // Draw resize handles if room is selected
       if (isSelected) {
-        const handleSize = 4;
+        const handleSize = 8;
         ctx.fillStyle = "#3498DB";
         
         // Corner handles
-        ctx.fillRect(room.x * gridSize - handleSize, room.y * gridSize - handleSize, handleSize * 2, handleSize * 2);
-        ctx.fillRect((room.x + room.width) * gridSize - handleSize, room.y * gridSize - handleSize, handleSize * 2, handleSize * 2);
-        ctx.fillRect(room.x * gridSize - handleSize, (room.y + room.length) * gridSize - handleSize, handleSize * 2, handleSize * 2);
-        ctx.fillRect((room.x + room.width) * gridSize - handleSize, (room.y + room.length) * gridSize - handleSize, handleSize * 2, handleSize * 2);
-        
+        [
+          [0, 0],                           // Top-left
+          [room.width * gridSize, 0],       // Top-right
+          [0, room.length * gridSize],      // Bottom-left
+          [room.width * gridSize, room.length * gridSize] // Bottom-right
+        ].forEach(([hx, hy]) => {
+          ctx.fillRect(
+            room.x * gridSize + hx - handleSize/2,
+            room.y * gridSize + hy - handleSize/2,
+            handleSize,
+            handleSize
+          );
+        });
+
         // Edge handles
-        ctx.fillRect((room.x + room.width/2) * gridSize - handleSize, room.y * gridSize - handleSize, handleSize * 2, handleSize * 2);
-        ctx.fillRect((room.x + room.width) * gridSize - handleSize, (room.y + room.length/2) * gridSize - handleSize, handleSize * 2, handleSize * 2);
-        ctx.fillRect((room.x + room.width/2) * gridSize - handleSize, (room.y + room.length) * gridSize - handleSize, handleSize * 2, handleSize * 2);
-        ctx.fillRect(room.x * gridSize - handleSize, (room.y + room.length/2) * gridSize - handleSize, handleSize * 2, handleSize * 2);
+        [
+          [room.width * gridSize / 2, 0],                    // Top
+          [room.width * gridSize, room.length * gridSize / 2], // Right
+          [room.width * gridSize / 2, room.length * gridSize], // Bottom
+          [0, room.length * gridSize / 2]                    // Left
+        ].forEach(([hx, hy]) => {
+          ctx.fillRect(
+            room.x * gridSize + hx - handleSize/2,
+            room.y * gridSize + hy - handleSize/2,
+            handleSize,
+            handleSize
+          );
+        });
       }
     });
   }, [rooms, selectedRoom, dimensions]);
