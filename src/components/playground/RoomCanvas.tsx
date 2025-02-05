@@ -1,8 +1,9 @@
 import { useRef, useEffect } from "react";
 import { Room, Component } from "./types";
-import { ROOM_COLORS } from "./constants";
 import { drawPlotBorder, drawPlotDimensions, drawRoomHandles } from "@/utils/canvasDrawing";
 import { drawRoom, drawRoomWindows, drawRoomDoors, drawRoomLabel } from "@/utils/canvasRoomUtils";
+import { ComponentDrawer } from "./canvas/ComponentDrawer";
+import { findClickedComponent } from "./canvas/ComponentInteraction";
 
 interface RoomCanvasProps {
   rooms: Room[];
@@ -48,12 +49,10 @@ export const RoomCanvas = ({
     const gridSize = 20;
     const wallThickness = gridSize / 2;
     
-    // Translate to create margin for dimensions
     ctx.save();
     ctx.translate(50, 50);
     
     if (showPlot) {
-      // Draw plot walls
       ctx.strokeStyle = "#403E43";
       ctx.lineWidth = wallThickness;
       ctx.strokeRect(
@@ -65,7 +64,6 @@ export const RoomCanvas = ({
       
       drawPlotDimensions(ctx, dimensions, gridSize);
       
-      // Draw plot door
       ctx.fillStyle = "#2C3E50";
       ctx.fillRect(
         dimensions.width * gridSize - (3 * gridSize),
@@ -75,10 +73,8 @@ export const RoomCanvas = ({
       );
     }
 
-    // Draw rooms
     rooms.forEach((room) => {
       const isSelected = selectedRoom?.id === room.id;
-      
       drawRoom(ctx, room, isSelected, gridSize, wallThickness);
       drawRoomWindows(ctx, room, gridSize);
       drawRoomDoors(ctx, room, dimensions, gridSize);
@@ -89,30 +85,8 @@ export const RoomCanvas = ({
       }
     });
 
-    // Draw components
     components.forEach((component) => {
-      ctx.save();
-      
-      ctx.translate(
-        component.x + (component.width * gridSize) / 2,
-        component.y + (component.length * gridSize) / 2
-      );
-      ctx.rotate((component.rotation * Math.PI) / 180);
-      
-      ctx.fillStyle = "#9CA3AF";
-      ctx.fillRect(
-        -(component.width * gridSize) / 2,
-        -(component.length * gridSize) / 2,
-        component.width * gridSize,
-        component.length * gridSize
-      );
-      
-      ctx.fillStyle = "#2C3E50";
-      ctx.font = "10px Inter";
-      ctx.textAlign = "center";
-      ctx.fillText(component.type, 0, 0);
-      
-      ctx.restore();
+      ComponentDrawer({ ctx, component, gridSize });
     });
     
     ctx.restore();
@@ -125,20 +99,7 @@ export const RoomCanvas = ({
     const y = e.clientY - rect.top - 50;
     const gridSize = 20;
 
-    // Check if clicking on a component
-    const clickedComponent = components.find(component => {
-      const componentX = component.x;
-      const componentY = component.y;
-      const componentWidth = component.width * gridSize;
-      const componentLength = component.length * gridSize;
-
-      return (
-        x >= componentX &&
-        x <= componentX + componentWidth &&
-        y >= componentY &&
-        y <= componentY + componentLength
-      );
-    });
+    const clickedComponent = findClickedComponent({ components, x, y, gridSize });
 
     if (clickedComponent) {
       draggedComponentRef.current = {
@@ -167,34 +128,10 @@ export const RoomCanvas = ({
       return;
     }
 
-    // Check if hovering over a component
-    const hoveringComponent = components.some(component => {
-      const componentX = component.x;
-      const componentY = component.y;
-      const componentWidth = component.width * gridSize;
-      const componentLength = component.length * gridSize;
-
-      return (
-        x >= componentX &&
-        x <= componentX + componentWidth &&
-        y >= componentY &&
-        y <= componentY + componentLength
-      );
-    });
-
-    if (hoveringComponent) {
-      canvas.style.cursor = 'move';
-    } else {
-      canvas.style.cursor = 'default';
-    }
+    const hoveringComponent = findClickedComponent({ components, x, y, gridSize });
+    canvas.style.cursor = hoveringComponent ? 'move' : 'default';
 
     onMouseMove(e);
-  };
-
-  const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    draggedComponentRef.current = null;
-    e.currentTarget.style.cursor = 'default';
-    onMouseUp();
   };
 
   return (
@@ -204,7 +141,11 @@ export const RoomCanvas = ({
       style={{ touchAction: 'none' }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
+      onMouseUp={(e) => {
+        draggedComponentRef.current = null;
+        e.currentTarget.style.cursor = 'default';
+        onMouseUp();
+      }}
       onMouseLeave={(e) => {
         draggedComponentRef.current = null;
         e.currentTarget.style.cursor = 'default';
