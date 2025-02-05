@@ -20,7 +20,7 @@ export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
         style={{ 
           width: size, 
           height: size,
-          transform: `rotate(${rotation}deg)` // Removed the negative sign to fix rotation direction
+          transform: `rotate(${rotation}deg)`
         }}
       >
         <div className="absolute inset-0 rounded-full bg-white border-2 border-mane-primary shadow-md">
@@ -30,7 +30,7 @@ export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
       </div>
       <button
         onClick={handleRotateLeft}
-        className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 transition-colors shadow-md"
+        className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-mane-secondary text-white flex items-center justify-center hover:bg-mane-secondary/80 transition-colors shadow-md"
         aria-label="Rotate Left"
       >
         <svg 
@@ -49,7 +49,7 @@ export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
       </button>
       <button
         onClick={handleRotateRight}
-        className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 transition-colors shadow-md"
+        className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-mane-secondary text-white flex items-center justify-center hover:bg-mane-secondary/80 transition-colors shadow-md"
         aria-label="Rotate Right"
       >
         <svg 

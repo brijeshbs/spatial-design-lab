@@ -80,7 +80,7 @@ export const CanvasArea = ({
       <div 
         className="absolute inset-0"
         style={{
-          transform: `scale(${scale}) translate(${position.x}px, ${position.y}px)`,
+          transform: `scale(${scale}) translate(${position.x}px, ${position.y}px) rotate(${rotation}deg)`,
           transformOrigin: "center",
         }}
       >
