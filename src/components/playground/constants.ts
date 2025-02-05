@@ -32,4 +32,14 @@ export const COMPONENTS = {
   "Washing Machine": { width: 2.5, length: 2.5, color: "#FFDEE2" },
   "Bed": { width: 6, length: 4, color: "#F2FCE2" },
   "Sofa": { width: 6, length: 3, color: "#FEF7CD" },
+  
+  // New Appliances
+  "Ceiling Fan": { width: 2.5, length: 2.5, color: "#A0AEC0" },
+  "Wall Fan": { width: 1, length: 1, color: "#A0AEC0" },
+  "Air Conditioner": { width: 3, length: 1, color: "#CBD5E0" },
+  "Ceiling Light": { width: 1, length: 1, color: "#F6E05E" },
+  "Wall Light": { width: 0.5, length: 0.5, color: "#F6E05E" },
+  "Floor Lamp": { width: 1, length: 1, color: "#F6E05E" },
+  "Chandelier": { width: 2, length: 2, color: "#F6E05E" },
+  "Track Light": { width: 3, length: 0.5, color: "#F6E05E" },
 } as const;
