@@ -4,7 +4,7 @@ import { LeftSidebar } from "@/components/playground/LeftSidebar";
 import { RightSidebar } from "@/components/playground/RightSidebar";
 import { CanvasArea } from "@/components/playground/CanvasArea";
 import { useRoomManagement } from "@/hooks/useRoomManagement";
-import type { Room } from "@/components/playground/types";
+import type { Room, Component } from "@/components/playground/types";
 import { ROOM_TYPES } from "@/components/playground/constants";
 
 const Playground = () => {
@@ -12,6 +12,7 @@ const Playground = () => {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [showPlot, setShowPlot] = useState(false);
+  const [components, setComponents] = useState<Component[]>([]);
 
   const {
     rooms,
@@ -23,6 +24,14 @@ const Playground = () => {
     handleCanvasMouseUp,
     handleRoomUpdate,
   } = useRoomManagement(dimensions);
+
+  const handleComponentSelect = (component: Component) => {
+    setComponents(prev => [...prev, component]);
+    toast({
+      title: "Component Added",
+      description: `Added ${component.type} to the canvas. Click to place it.`,
+    });
+  };
 
   const findValidPosition = (
     room: { width: number; length: number },
@@ -97,12 +106,14 @@ const Playground = () => {
         onMouseUp={handleCanvasMouseUp}
         onMouseLeave={handleCanvasMouseUp}
         showPlot={showPlot}
+        components={components}
       />
 
       <LeftSidebar
         showLeftSidebar={showLeftSidebar}
         setShowLeftSidebar={setShowLeftSidebar}
         onGenerate={generateInitialLayout}
+        onComponentSelect={handleComponentSelect}
       />
 
       <RightSidebar

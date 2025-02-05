@@ -2,9 +2,10 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { COMPONENTS } from "./constants";
+import { Component } from "./types";
 
 interface ComponentSelectorProps {
-  onSelect: (componentType: string) => void;
+  onSelect: (component: Component) => void;
 }
 
 export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
@@ -12,6 +13,20 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
   const furnitureComponents = Object.keys(COMPONENTS).filter(
     (key) => !structuralComponents.includes(key)
   );
+
+  const handleComponentSelect = (type: string) => {
+    const componentSpec = COMPONENTS[type as keyof typeof COMPONENTS];
+    const newComponent: Component = {
+      id: Math.random().toString(36).substr(2, 9),
+      type,
+      width: componentSpec.width,
+      length: componentSpec.length,
+      x: 0,
+      y: 0,
+      rotation: 0,
+    };
+    onSelect(newComponent);
+  };
 
   return (
     <ScrollArea className="h-[400px] pr-4">
@@ -24,7 +39,7 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
                 key={type}
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => onSelect(type)}
+                onClick={() => handleComponentSelect(type)}
               >
                 {type}
               </Button>
@@ -44,7 +59,7 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
                 key={type}
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => onSelect(type)}
+                onClick={() => handleComponentSelect(type)}
               >
                 {type}
               </Button>

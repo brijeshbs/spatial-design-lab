@@ -4,27 +4,22 @@ import { ComponentSelector } from "./ComponentSelector";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { toast } from "@/components/ui/use-toast";
+import { Component } from "./types";
 
 interface LeftSidebarProps {
   showLeftSidebar: boolean;
   setShowLeftSidebar: (show: boolean) => void;
   onGenerate: (params: { width: number; length: number; roomTypes: string[] }) => void;
+  onComponentSelect: (component: Component) => void;
 }
 
 export const LeftSidebar = ({
   showLeftSidebar,
   setShowLeftSidebar,
   onGenerate,
+  onComponentSelect,
 }: LeftSidebarProps) => {
   const [showComponents, setShowComponents] = useState(false);
-
-  const handleComponentSelect = (componentType: string) => {
-    toast({
-      title: "Component Selected",
-      description: `Selected ${componentType}. This feature will be implemented soon.`,
-    });
-  };
 
   return (
     <>
@@ -65,7 +60,7 @@ export const LeftSidebar = ({
         </div>
 
         {showComponents ? (
-          <ComponentSelector onSelect={handleComponentSelect} />
+          <ComponentSelector onSelect={onComponentSelect} />
         ) : (
           <RoomParameters onGenerate={onGenerate} />
         )}

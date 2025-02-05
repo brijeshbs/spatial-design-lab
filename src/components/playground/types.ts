@@ -7,6 +7,16 @@ export interface Room {
   y: number;
 }
 
+export interface Component {
+  id: string;
+  type: string;
+  width: number;
+  length: number;
+  x: number;
+  y: number;
+  rotation: number;
+}
+
 export interface ResizeHandle {
   room: Room;
   edge: 'top' | 'right' | 'bottom' | 'left' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
