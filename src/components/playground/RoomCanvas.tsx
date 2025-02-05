@@ -1,7 +1,8 @@
 import { useRef, useEffect } from "react";
 import { Room, Component } from "./types";
 import { ROOM_COLORS } from "./constants";
-import { drawPlotBorder, drawPlotDimensions, drawRoomHandles } from "@/utils/canvasDrawing";
+import { drawPlotBorder, drawPlotDimensions } from "@/utils/canvasDrawing";
+import { drawRoom, drawRoomWindows, drawRoomDoors, drawRoomLabel } from "@/utils/canvasRoomUtils";
 
 interface RoomCanvasProps {
   rooms: Room[];
@@ -42,15 +43,15 @@ export const RoomCanvas = ({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const gridSize = 20;
-    const wallThickness = gridSize / 2; // Thickness for walls
+    const wallThickness = gridSize / 2;
     
     // Translate to create margin for dimensions
     ctx.save();
     ctx.translate(50, 50);
     
     if (showPlot) {
-      // Draw plot walls (thicker border)
-      ctx.strokeStyle = "#403E43"; // Wall color
+      // Draw plot walls
+      ctx.strokeStyle = "#403E43";
       ctx.lineWidth = wallThickness;
       ctx.strokeRect(
         wallThickness / 2,
@@ -62,95 +63,23 @@ export const RoomCanvas = ({
       drawPlotDimensions(ctx, dimensions, gridSize);
       
       // Draw plot door
-      const doorWidth = 3 * gridSize;
-      const doorHeight = gridSize / 2;
       ctx.fillStyle = "#2C3E50";
       ctx.fillRect(
-        dimensions.width * gridSize - doorWidth,
-        dimensions.length * gridSize - doorHeight,
-        doorWidth,
-        doorHeight
+        dimensions.width * gridSize - (3 * gridSize),
+        dimensions.length * gridSize - (gridSize / 2),
+        3 * gridSize,
+        gridSize / 2
       );
     }
 
     // Draw rooms
     rooms.forEach((room) => {
       const isSelected = selectedRoom?.id === room.id;
-      const roomColor = ROOM_COLORS[room.type as keyof typeof ROOM_COLORS] || "#E2E8F0";
       
-      // Draw room fill
-      ctx.fillStyle = roomColor;
-      ctx.fillRect(
-        room.x * gridSize + wallThickness / 2,
-        room.y * gridSize + wallThickness / 2,
-        room.width * gridSize - wallThickness,
-        room.length * gridSize - wallThickness
-      );
-      
-      // Draw room walls (thicker border)
-      ctx.strokeStyle = isSelected ? "#3498DB" : "#403E43";
-      ctx.lineWidth = wallThickness;
-      ctx.strokeRect(
-        room.x * gridSize + wallThickness / 2,
-        room.y * gridSize + wallThickness / 2,
-        room.width * gridSize - wallThickness,
-        room.length * gridSize - wallThickness
-      );
-
-      // Draw windows (on each wall except where the door is)
-      const windowWidth = 3 * gridSize;
-      const windowHeight = gridSize / 2;
-      ctx.fillStyle = "#D3E4FD";
-
-      // Top wall window
-      ctx.fillRect(
-        room.x * gridSize + (room.width * gridSize / 2) - (windowWidth / 2),
-        room.y * gridSize,
-        windowWidth,
-        windowHeight
-      );
-
-      // Left wall window
-      ctx.fillRect(
-        room.x * gridSize,
-        room.y * gridSize + (room.length * gridSize / 2) - (windowWidth / 2),
-        windowHeight,
-        windowWidth
-      );
-
-      // Draw room door (except for Living Room)
-      if (room.type !== "Living Room") {
-        const doorWidth = 3 * gridSize;
-        const doorHeight = gridSize / 2;
-        ctx.fillStyle = "#2C3E50";
-        ctx.fillRect(
-          room.x * gridSize + room.width * gridSize - doorWidth,
-          room.y * gridSize + room.length * gridSize - doorHeight,
-          doorWidth,
-          doorHeight
-        );
-      }
-
-      // Draw Living Room door alongside plot door
-      if (room.type === "Living Room") {
-        const doorWidth = 3 * gridSize;
-        const doorHeight = gridSize / 2;
-        ctx.fillStyle = "#2C3E50";
-        ctx.fillRect(
-          dimensions.width * gridSize - doorWidth - (4 * gridSize), // Offset from plot door
-          dimensions.length * gridSize - doorHeight,
-          doorWidth,
-          doorHeight
-        );
-      }
-
-      ctx.fillStyle = "#2C3E50";
-      ctx.font = "12px Inter";
-      ctx.fillText(
-        `${room.type} (${room.width}' × ${room.length}')`,
-        room.x * gridSize + 5,
-        room.y * gridSize + 20
-      );
+      drawRoom(ctx, room, isSelected, gridSize, wallThickness);
+      drawRoomWindows(ctx, room, gridSize);
+      drawRoomDoors(ctx, room, dimensions, gridSize);
+      drawRoomLabel(ctx, room, gridSize);
 
       if (isSelected) {
         drawRoomHandles(ctx, room, gridSize);
@@ -161,14 +90,12 @@ export const RoomCanvas = ({
     components.forEach((component) => {
       ctx.save();
       
-      // Move to component position and apply rotation
       ctx.translate(
         component.x + (component.width * gridSize) / 2,
         component.y + (component.length * gridSize) / 2
       );
       ctx.rotate((component.rotation * Math.PI) / 180);
       
-      // Draw component
       ctx.fillStyle = "#9CA3AF";
       ctx.fillRect(
         -(component.width * gridSize) / 2,
@@ -177,15 +104,10 @@ export const RoomCanvas = ({
         component.length * gridSize
       );
       
-      // Add component label
       ctx.fillStyle = "#2C3E50";
       ctx.font = "10px Inter";
       ctx.textAlign = "center";
-      ctx.fillText(
-        component.type,
-        0,
-        0
-      );
+      ctx.fillText(component.type, 0, 0);
       
       ctx.restore();
     });
@@ -236,9 +158,7 @@ export const RoomCanvas = ({
     <canvas
       ref={canvasRef}
       className="absolute inset-0"
-      style={{
-        touchAction: 'none'
-      }}
+      style={{ touchAction: 'none' }}
       onMouseDown={onMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={(e) => {
