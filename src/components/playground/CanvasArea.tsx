@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Room, Component } from "./types";
 import { RoomCanvas } from "./RoomCanvas";
 import { ThreeDCanvas } from "./ThreeDCanvas";
