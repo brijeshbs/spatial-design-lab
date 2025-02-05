@@ -1,6 +1,5 @@
 import { useRef, useEffect } from "react";
 import { Room } from "./types";
-import { Compass } from "./Compass";
 import { ROOM_COLORS } from "./constants";
 import { drawPlotBorder, drawPlotDimensions, drawRoomHandles } from "@/utils/canvasDrawing";
 
@@ -34,7 +33,6 @@ export const RoomCanvas = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size to match window size
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
@@ -77,15 +75,6 @@ export const RoomCanvas = ({
         drawRoomHandles(ctx, room, gridSize);
       }
     });
-
-    // Draw compass with fixed position
-    const compass = new Compass({ 
-      size: 60, 
-      x: window.innerWidth - 100,
-      y: window.innerHeight - 100,
-      rotation
-    });
-    compass.draw(ctx);
 
   }, [rooms, selectedRoom, dimensions, rotation]);
 

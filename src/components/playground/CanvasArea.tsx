@@ -43,35 +43,13 @@ export const CanvasArea = ({
   }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = e.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Check if compass rotation buttons were clicked
-    const compass = new Compass({ 
-      size: 60, 
-      x: window.innerWidth - 80,
-      y: window.innerHeight - 80,
-      rotation
-    });
-    
-    const rotationClick = compass.isRotationButtonClicked(x, y);
-    if (rotationClick) {
-      setRotation(prev => {
-        const change = rotationClick === 'left' ? -90 : 90;
-        return (prev + change + 360) % 360;
-      });
-      return;
-    }
-
     if (e.button === 1 || e.button === 2) {
       setIsPanning(true);
       setStartPanPosition({ x: e.clientX - position.x, y: e.clientY - position.y });
     } else {
       onMouseDown(e);
     }
-  }, [position, onMouseDown, rotation]);
+  }, [position, onMouseDown]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (isPanning) {
@@ -102,7 +80,7 @@ export const CanvasArea = ({
       <div 
         className="absolute inset-0"
         style={{
-          transform: `scale(${scale}) translate(${position.x}px, ${position.y}px) rotate(${rotation}deg)`,
+          transform: `scale(${scale}) translate(${position.x}px, ${position.y}px)`,
           transformOrigin: "center",
         }}
       >
@@ -116,6 +94,9 @@ export const CanvasArea = ({
           onMouseLeave={onMouseLeave}
           rotation={rotation}
         />
+      </div>
+      <div className="fixed bottom-8 right-8 z-50">
+        <Compass size={60} rotation={rotation} onRotate={setRotation} />
       </div>
     </div>
   );

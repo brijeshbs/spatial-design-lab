@@ -1,100 +1,45 @@
-export class Compass {
-  private size: number;
-  private x: number;
-  private y: number;
-  private rotation: number;
-
-  constructor({ size, x, y, rotation = 0 }: { size: number; x: number; y: number; rotation?: number }) {
-    this.size = size;
-    this.x = x;
-    this.y = y;
-    this.rotation = rotation;
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    // Fixed position in bottom right corner
-    const compassX = window.innerWidth - 100;
-    const compassY = window.innerHeight - 100;
-    
-    // Save current context state
-    ctx.save();
-    
-    // Draw compass circle with fixed screen position
-    ctx.beginPath();
-    ctx.arc(compassX, compassY, this.size/2, 0, 2 * Math.PI);
-    ctx.fillStyle = "white";
-    ctx.fill();
-    ctx.strokeStyle = "#2C3E50";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Apply rotation only to the compass needle and N indicator
-    ctx.translate(compassX, compassY);
-    ctx.rotate((-this.rotation * Math.PI) / 180);
-    ctx.translate(-compassX, -compassY);
-
-    // Draw compass needle
-    ctx.beginPath();
-    ctx.moveTo(compassX, compassY + this.size/3);
-    ctx.lineTo(compassX, compassY - this.size/3);
-    ctx.strokeStyle = "#E74C3C";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Draw N indicator
-    ctx.fillStyle = "#2C3E50";
-    ctx.font = "bold 16px Inter";
-    ctx.textAlign = "center";
-    ctx.fillText("N", compassX, compassY - this.size/2 + 15);
-
-    // Reset rotation for buttons
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-    // Draw rotation buttons
-    const buttonRadius = 15;
-    const buttonDistance = this.size/2 + 25;
-    
-    // Left rotation button
-    ctx.beginPath();
-    ctx.arc(compassX - buttonDistance, compassY, buttonRadius, 0, 2 * Math.PI);
-    ctx.fillStyle = "#3498DB";
-    ctx.fill();
-    ctx.fillStyle = "white";
-    ctx.font = "bold 16px Inter";
-    ctx.fillText("⟲", compassX - buttonDistance, compassY + 5);
-
-    // Right rotation button
-    ctx.beginPath();
-    ctx.arc(compassX + buttonDistance, compassY, buttonRadius, 0, 2 * Math.PI);
-    ctx.fillStyle = "#3498DB";
-    ctx.fill();
-    ctx.fillStyle = "white";
-    ctx.fillText("⟳", compassX + buttonDistance, compassY + 5);
-    
-    // Restore context state
-    ctx.restore();
-  }
-
-  isRotationButtonClicked(x: number, y: number): 'left' | 'right' | null {
-    const compassX = window.innerWidth - 100;
-    const compassY = window.innerHeight - 100;
-    const buttonDistance = this.size/2 + 25;
-    const buttonRadius = 15;
-    
-    // Check left button
-    const leftDist = Math.sqrt(
-      Math.pow(x - (compassX - buttonDistance), 2) + 
-      Math.pow(y - compassY, 2)
-    );
-    if (leftDist <= buttonRadius) return 'left';
-    
-    // Check right button
-    const rightDist = Math.sqrt(
-      Math.pow(x - (compassX + buttonDistance), 2) + 
-      Math.pow(y - compassY, 2)
-    );
-    if (rightDist <= buttonRadius) return 'right';
-    
-    return null;
-  }
+interface CompassProps {
+  size: number;
+  rotation: number;
+  onRotate: (rotation: number) => void;
 }
+
+export const Compass = ({ size, rotation, onRotate }: CompassProps) => {
+  const handleRotateLeft = () => {
+    onRotate((rotation - 90 + 360) % 360);
+  };
+
+  const handleRotateRight = () => {
+    onRotate((rotation + 90) % 360);
+  };
+
+  return (
+    <div className="relative" style={{ width: size * 2.5, height: size * 2.5 }}>
+      <div 
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+        style={{ 
+          width: size, 
+          height: size,
+          transform: `rotate(${-rotation}deg)` 
+        }}
+      >
+        <div className="absolute inset-0 rounded-full bg-white border-2 border-gray-800">
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 font-bold text-gray-800">N</div>
+          <div className="absolute h-1/2 w-0.5 bg-red-500 left-1/2 -translate-x-1/2 origin-bottom" />
+        </div>
+      </div>
+      <button
+        onClick={handleRotateLeft}
+        className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600"
+      >
+        ⟲
+      </button>
+      <button
+        onClick={handleRotateRight}
+        className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600"
+      >
+        ⟳
+      </button>
+    </div>
+  );
+};
