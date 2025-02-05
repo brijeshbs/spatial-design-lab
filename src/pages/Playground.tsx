@@ -242,18 +242,16 @@ const Playground = () => {
       )}
 
       {/* Main Canvas Area */}
-      <div className="flex items-center justify-center min-h-screen p-8">
-        <div className="bg-white rounded-lg shadow-lg p-4">
-          <RoomCanvas
-            rooms={rooms}
-            selectedRoom={selectedRoom}
-            dimensions={dimensions}
-            onMouseDown={handleCanvasMouseDown}
-            onMouseMove={handleCanvasMouseMove}
-            onMouseUp={handleCanvasMouseUp}
-            onMouseLeave={handleCanvasMouseUp}
-          />
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <RoomCanvas
+          rooms={rooms}
+          selectedRoom={selectedRoom}
+          dimensions={dimensions}
+          onMouseDown={handleCanvasMouseDown}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
+          onMouseLeave={handleCanvasMouseUp}
+        />
       </div>
 
       {/* Right Sidebar */}
