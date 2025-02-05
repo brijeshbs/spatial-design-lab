@@ -4,7 +4,7 @@ import { LeftSidebar } from "@/components/playground/LeftSidebar";
 import { RightSidebar } from "@/components/playground/RightSidebar";
 import { CanvasArea } from "@/components/playground/CanvasArea";
 import { useRoomManagement } from "@/hooks/useRoomManagement";
-import type { Room } from "@/components/playground/types";
+import type { Room, Component } from "@/components/playground/types";
 import { ROOM_TYPES } from "@/components/playground/constants";
 
 const Playground = () => {
@@ -101,7 +101,12 @@ const Playground = () => {
         showLeftSidebar={showLeftSidebar}
         setShowLeftSidebar={setShowLeftSidebar}
         onGenerate={generateInitialLayout}
-        onComponentSelect={() => {}}
+        onComponentSelect={(component: Component) => {
+          toast({
+            title: "Component Added",
+            description: `${component.type} has been placed on the canvas`,
+          });
+        }}
       />
 
       <RightSidebar
