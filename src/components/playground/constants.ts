@@ -23,6 +23,7 @@ export const COMPONENTS = {
   "Wall": { width: 0.5, length: 4, color: "#403E43" },
   "Door": { width: 3, length: 0.5, color: "#8A898C" },
   "Window": { width: 3, length: 0.5, color: "#D3E4FD" },
+  "Staircase": { width: 4, length: 8, color: "#8B7355" },
   
   // Furniture and appliances
   "Table": { width: 4, length: 3, color: "#FEC6A1" },
