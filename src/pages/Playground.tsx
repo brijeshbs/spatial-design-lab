@@ -1,50 +1,14 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { RoomParameters } from "@/components/RoomParameters";
-import { Compass, X } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Room {
-  id: string;
-  type: string;
-  width: number;
-  length: number;
-  x: number;
-  y: number;
-}
-
-interface ResizeHandle {
-  room: Room;
-  edge: 'top' | 'right' | 'bottom' | 'left' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
-  startX: number;
-  startY: number;
-  startWidth: number;
-  startHeight: number;
-  startRoomX: number;
-  startRoomY: number;
-}
-
-const ROOM_TYPES = {
-  "Master Bedroom": { width: 16, length: 14 },
-  "Second Bedroom": { width: 14, length: 12 },
-  "Children's Room": { width: 12, length: 10 },
-  "Living Room": { width: 20, length: 16 },
-  "Kitchen": { width: 12, length: 10 },
-  "Bathroom": { width: 8, length: 6 },
-  "Balcony": { width: 10, length: 6 },
-};
-
-const ROOM_COLORS = {
-  "Master Bedroom": "#9b87f5",  // Primary Purple
-  "Second Bedroom": "#FEC6A1",  // Soft Orange
-  "Children's Room": "#D3E4FD", // Soft Blue
-  "Living Room": "#F2FCE2",     // Soft Green
-  "Kitchen": "#FFDEE2",         // Soft Pink
-  "Bathroom": "#E5DEFF",        // Soft Purple
-  "Balcony": "#FEF7CD",        // Soft Yellow
-};
+import { InfiniteGrid } from "@/components/playground/InfiniteGrid";
+import { RoomCanvas } from "@/components/playground/RoomCanvas";
+import { ROOM_TYPES } from "@/components/playground/constants";
+import type { Room, ResizeHandle } from "@/components/playground/types";
 
 const Playground = () => {
   const [dimensions, setDimensions] = useState({ width: 30, length: 40 });
@@ -56,7 +20,6 @@ const Playground = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
     setDimensions({ width, length });
@@ -75,9 +38,7 @@ const Playground = () => {
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
+    const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -163,9 +124,7 @@ const Playground = () => {
   };
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current) return;
-
-    const canvas = canvasRef.current;
+    const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
     const gridSize = 20;
     const x = e.clientX - rect.left;
@@ -192,20 +151,6 @@ const Playground = () => {
             case 'bottomRight':
               newWidth = Math.max(5, resizeHandle.startWidth + deltaX / gridSize);
               newLength = Math.max(5, resizeHandle.startHeight + deltaY / gridSize);
-              break;
-            case 'left':
-              const newWidthFromLeft = resizeHandle.startWidth - deltaX / gridSize;
-              if (newWidthFromLeft >= 5) {
-                newWidth = newWidthFromLeft;
-                newX = resizeHandle.startRoomX + deltaX / gridSize;
-              }
-              break;
-            case 'top':
-              const newLengthFromTop = resizeHandle.startHeight - deltaY / gridSize;
-              if (newLengthFromTop >= 5) {
-                newLength = newLengthFromTop;
-                newY = resizeHandle.startRoomY + deltaY / gridSize;
-              }
               break;
           }
 
@@ -264,165 +209,10 @@ const Playground = () => {
     }
   };
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw infinite grid background
-    const gridSize = 20;
-    ctx.strokeStyle = "#E2E8F0";
-    ctx.lineWidth = 0.5;
-
-    // Calculate grid offset to create infinite effect
-    const offsetX = (window.scrollX % gridSize);
-    const offsetY = (window.scrollY % gridSize);
-
-    // Draw vertical lines
-    for (let x = -offsetX; x <= canvas.width + gridSize; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
-      ctx.stroke();
-    }
-
-    // Draw horizontal lines
-    for (let y = -offsetY; y <= canvas.height + gridSize; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
-    }
-
-    // Draw plot outline with measurements
-    ctx.strokeStyle = "#2C3E50";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(0, 0, dimensions.width * gridSize, dimensions.length * gridSize);
-    
-    // Draw plot dimensions
-    ctx.fillStyle = "#2C3E50";
-    ctx.font = "12px Inter";
-    ctx.fillText(`${dimensions.width} ft`, dimensions.width * gridSize / 2 - 20, -5);
-    ctx.fillText(`${dimensions.length} ft`, -25, dimensions.length * gridSize / 2);
-
-    // Draw rooms with their measurements
-    rooms.forEach((room) => {
-      const isSelected = selectedRoom?.id === room.id;
-      const roomColor = ROOM_COLORS[room.type as keyof typeof ROOM_COLORS] || "#E2E8F0";
-      
-      // Draw room
-      ctx.fillStyle = roomColor;
-      ctx.fillRect(
-        room.x * gridSize,
-        room.y * gridSize,
-        room.width * gridSize,
-        room.length * gridSize
-      );
-      
-      // Draw room border
-      ctx.strokeStyle = isSelected ? "#3498DB" : "#2C3E50";
-      ctx.lineWidth = isSelected ? 2 : 1;
-      ctx.strokeRect(
-        room.x * gridSize,
-        room.y * gridSize,
-        room.width * gridSize,
-        room.length * gridSize
-      );
-
-      // Draw room label and dimensions
-      ctx.fillStyle = "#2C3E50";
-      ctx.font = "12px Inter";
-      ctx.fillText(
-        `${room.type} (${room.width}' × ${room.length}')`,
-        room.x * gridSize + 5,
-        room.y * gridSize + 20
-      );
-
-      // Draw measurements
-      ctx.fillText(
-        `${room.width} ft`,
-        room.x * gridSize + (room.width * gridSize / 2) - 15,
-        room.y * gridSize - 5
-      );
-      ctx.fillText(
-        `${room.length} ft`,
-        room.x * gridSize - 25,
-        room.y * gridSize + (room.length * gridSize / 2)
-      );
-
-      if (isSelected) {
-        const handleSize = 8;
-        ctx.fillStyle = "#3498DB";
-        
-        // Corner handles
-        [
-          [0, 0],                           // Top-left
-          [room.width * gridSize, 0],       // Top-right
-          [0, room.length * gridSize],      // Bottom-left
-          [room.width * gridSize, room.length * gridSize] // Bottom-right
-        ].forEach(([hx, hy]) => {
-          ctx.fillRect(
-            room.x * gridSize + hx - handleSize/2,
-            room.y * gridSize + hy - handleSize/2,
-            handleSize,
-            handleSize
-          );
-        });
-
-        // Edge handles
-        [
-          [room.width * gridSize / 2, 0],                    // Top
-          [room.width * gridSize, room.length * gridSize / 2], // Right
-          [room.width * gridSize / 2, room.length * gridSize], // Bottom
-          [0, room.length * gridSize / 2]                    // Left
-        ].forEach(([hx, hy]) => {
-          ctx.fillRect(
-            room.x * gridSize + hx - handleSize/2,
-            room.y * gridSize + hy - handleSize/2,
-            handleSize,
-            handleSize
-          );
-        });
-      }
-    });
-
-    // Draw compass
-    const compassSize = 60;
-    const compassX = canvas.width - compassSize - 20;
-    const compassY = canvas.height - compassSize - 20;
-    
-    // Draw compass circle
-    ctx.beginPath();
-    ctx.arc(compassX, compassY, compassSize/2, 0, 2 * Math.PI);
-    ctx.fillStyle = "white";
-    ctx.fill();
-    ctx.strokeStyle = "#2C3E50";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Draw compass needle
-    ctx.beginPath();
-    ctx.moveTo(compassX, compassY + compassSize/3);
-    ctx.lineTo(compassX, compassY - compassSize/3);
-    ctx.strokeStyle = "#E74C3C";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Draw N indicator
-    ctx.fillStyle = "#2C3E50";
-    ctx.font = "bold 14px Inter";
-    ctx.textAlign = "center";
-    ctx.fillText("N", compassX, compassY - compassSize/2 - 5);
-
-  }, [rooms, selectedRoom, dimensions]);
-
   return (
     <div className="min-h-screen bg-mane-background relative overflow-hidden">
+      <InfiniteGrid width={window.innerWidth} height={window.innerHeight} />
+      
       {/* Left Sidebar */}
       <div className={cn(
         "fixed left-4 top-4 bg-white p-4 shadow-lg rounded-lg transition-transform duration-300 z-10",
@@ -454,11 +244,10 @@ const Playground = () => {
       {/* Main Canvas Area */}
       <div className="flex-1 p-8">
         <div className="bg-white rounded-lg shadow-lg p-4">
-          <canvas
-            ref={canvasRef}
-            width={800}
-            height={600}
-            className="border border-mane-grid rounded cursor-move"
+          <RoomCanvas
+            rooms={rooms}
+            selectedRoom={selectedRoom}
+            dimensions={dimensions}
             onMouseDown={handleCanvasMouseDown}
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
