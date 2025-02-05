@@ -18,10 +18,9 @@ export const InfiniteGrid = ({ width, height, scale, position }: InfiniteGridPro
     if (!ctx) return;
 
     const updateCanvasSize = () => {
-      // Set canvas size to double the window size to ensure coverage during panning
-      canvas.width = window.innerWidth * 2;
-      canvas.height = window.innerHeight * 2;
-      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
     };
 
     updateCanvasSize();
@@ -31,31 +30,25 @@ export const InfiniteGrid = ({ width, height, scale, position }: InfiniteGridPro
 
       const gridSize = 20 * scale;
       ctx.strokeStyle = "#E2E8F0";
-      ctx.lineWidth = 0.5;
+      ctx.lineWidth = 1;
 
       // Calculate grid offset based on position and scale
       const offsetX = (position.x * scale) % gridSize;
       const offsetY = (position.y * scale) % gridSize;
 
-      // Calculate visible area with extra padding
-      const startX = -gridSize * 4;
-      const startY = -gridSize * 4;
-      const endX = canvas.width + gridSize * 4;
-      const endY = canvas.height + gridSize * 4;
-
       // Draw vertical lines
-      for (let x = startX; x <= endX; x += gridSize) {
+      for (let x = offsetX; x < canvas.width; x += gridSize) {
         ctx.beginPath();
-        ctx.moveTo(x - offsetX, startY);
-        ctx.lineTo(x - offsetX, endY);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
         ctx.stroke();
       }
 
       // Draw horizontal lines
-      for (let y = startY; y <= endY; y += gridSize) {
+      for (let y = offsetY; y < canvas.height; y += gridSize) {
         ctx.beginPath();
-        ctx.moveTo(startX, y - offsetY);
-        ctx.lineTo(endX, y - offsetY);
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
         ctx.stroke();
       }
     };
@@ -83,7 +76,6 @@ export const InfiniteGrid = ({ width, height, scale, position }: InfiniteGridPro
         width: '100vw',
         height: '100vh',
         zIndex: -1,
-        pointerEvents: 'none',
       }}
     />
   );

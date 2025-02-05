@@ -12,8 +12,9 @@ export class Compass {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    const compassX = window.innerWidth - 80;
-    const compassY = window.innerHeight - 80;
+    // Fixed position in bottom right corner
+    const compassX = window.innerWidth - 100;
+    const compassY = window.innerHeight - 100;
     
     // Save current context state
     ctx.save();
@@ -42,7 +43,7 @@ export class Compass {
 
     // Draw N indicator
     ctx.fillStyle = "#2C3E50";
-    ctx.font = "bold 14px Inter";
+    ctx.font = "bold 16px Inter";
     ctx.textAlign = "center";
     ctx.fillText("N", compassX, compassY - this.size/2 + 15);
 
@@ -59,6 +60,7 @@ export class Compass {
     ctx.fillStyle = "#3498DB";
     ctx.fill();
     ctx.fillStyle = "white";
+    ctx.font = "bold 16px Inter";
     ctx.fillText("⟲", compassX - buttonDistance, compassY + 5);
 
     // Right rotation button
@@ -74,8 +76,8 @@ export class Compass {
   }
 
   isRotationButtonClicked(x: number, y: number): 'left' | 'right' | null {
-    const compassX = window.innerWidth - 80;
-    const compassY = window.innerHeight - 80;
+    const compassX = window.innerWidth - 100;
+    const compassY = window.innerHeight - 100;
     const buttonDistance = this.size/2 + 25;
     const buttonRadius = 15;
     
