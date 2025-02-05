@@ -123,6 +123,45 @@ export const RoomCanvas = ({
     ctx.restore();
   }, [rooms, selectedRoom, dimensions, rotation, showPlot, components]);
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = e.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left - 50; // Adjust for the translate(50, 50)
+    const y = e.clientY - rect.top - 50;
+    const gridSize = 20;
+
+    if (selectedRoom) {
+      const roomX = selectedRoom.x * gridSize;
+      const roomY = selectedRoom.y * gridSize;
+      const roomWidth = selectedRoom.width * gridSize;
+      const roomLength = selectedRoom.length * gridSize;
+      const handleSize = 8;
+
+      // Check if near edges
+      const nearLeftEdge = Math.abs(x - roomX) <= handleSize;
+      const nearRightEdge = Math.abs(x - (roomX + roomWidth)) <= handleSize;
+      const nearTopEdge = Math.abs(y - roomY) <= handleSize;
+      const nearBottomEdge = Math.abs(y - (roomY + roomLength)) <= handleSize;
+
+      // Set cursor based on position
+      if ((nearLeftEdge && nearTopEdge) || (nearRightEdge && nearBottomEdge)) {
+        canvas.style.cursor = 'nwse-resize';
+      } else if ((nearRightEdge && nearTopEdge) || (nearLeftEdge && nearBottomEdge)) {
+        canvas.style.cursor = 'nesw-resize';
+      } else if (nearLeftEdge || nearRightEdge) {
+        canvas.style.cursor = 'ew-resize';
+      } else if (nearTopEdge || nearBottomEdge) {
+        canvas.style.cursor = 'ns-resize';
+      } else if (x >= roomX && x <= roomX + roomWidth && y >= roomY && y <= roomY + roomLength) {
+        canvas.style.cursor = 'move';
+      } else {
+        canvas.style.cursor = 'default';
+      }
+    }
+
+    onMouseMove(e);
+  };
+
   return (
     <canvas
       ref={canvasRef}
@@ -131,9 +170,15 @@ export const RoomCanvas = ({
         touchAction: 'none'
       }}
       onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseLeave}
+      onMouseMove={handleMouseMove}
+      onMouseUp={(e) => {
+        e.currentTarget.style.cursor = 'default';
+        onMouseUp();
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.cursor = 'default';
+        onMouseLeave();
+      }}
     />
   );
 };
