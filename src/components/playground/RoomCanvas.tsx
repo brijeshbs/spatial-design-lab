@@ -12,6 +12,7 @@ interface RoomCanvasProps {
   onMouseMove: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   onMouseUp: () => void;
   onMouseLeave: () => void;
+  rotation: number;
 }
 
 export const RoomCanvas = ({
@@ -22,6 +23,7 @@ export const RoomCanvas = ({
   onMouseMove,
   onMouseUp,
   onMouseLeave,
+  rotation,
 }: RoomCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -78,11 +80,12 @@ export const RoomCanvas = ({
     const compass = new Compass({ 
       size: 60, 
       x: canvas.width - 80,
-      y: canvas.height - 80
+      y: canvas.height - 80,
+      rotation
     });
     compass.draw(ctx);
 
-  }, [rooms, selectedRoom, dimensions]);
+  }, [rooms, selectedRoom, dimensions, rotation]);
 
   return (
     <canvas

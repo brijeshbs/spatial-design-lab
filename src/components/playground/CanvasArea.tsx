@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { Room } from "./types";
 import { RoomCanvas } from "./RoomCanvas";
 import { InfiniteGrid } from "./InfiniteGrid";
+import { Compass } from "./Compass";
 
 interface CanvasAreaProps {
   rooms: Room[];
@@ -24,6 +25,7 @@ export const CanvasArea = ({
 }: CanvasAreaProps) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [rotation, setRotation] = useState(0);
   const [isPanning, setIsPanning] = useState(false);
   const [startPanPosition, setStartPanPosition] = useState({ x: 0, y: 0 });
 
@@ -41,13 +43,33 @@ export const CanvasArea = ({
   }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = e.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Check if compass rotation buttons were clicked
+    const compass = new Compass({ 
+      size: 60, 
+      x: canvas.width - 80,
+      y: canvas.height - 80,
+      rotation
+    });
+    
+    const rotationClick = compass.isRotationButtonClicked(x, y);
+    if (rotationClick) {
+      const newRotation = (rotation + (rotationClick === 'left' ? -90 : 90)) % 360;
+      setRotation(newRotation);
+      return;
+    }
+
     if (e.button === 1 || e.button === 2) {
       setIsPanning(true);
       setStartPanPosition({ x: e.clientX - position.x, y: e.clientY - position.y });
     } else {
       onMouseDown(e);
     }
-  }, [position, onMouseDown]);
+  }, [position, onMouseDown, rotation]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (isPanning) {
@@ -78,7 +100,7 @@ export const CanvasArea = ({
       <div 
         className="absolute inset-0"
         style={{
-          transform: `scale(${scale}) translate(${position.x}px, ${position.y}px)`,
+          transform: `scale(${scale}) translate(${position.x}px, ${position.y}px) rotate(${rotation}deg)`,
           transformOrigin: "center",
         }}
       >
@@ -90,6 +112,7 @@ export const CanvasArea = ({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={onMouseLeave}
+          rotation={rotation}
         />
       </div>
     </div>
