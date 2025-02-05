@@ -17,3 +17,19 @@ export const ROOM_COLORS = {
   "Bathroom": "#E5DEFF",        // Soft Purple
   "Balcony": "#FEF7CD",        // Soft Yellow
 } as const;
+
+export const COMPONENTS = {
+  // Structural components
+  "Wall": { width: 0.5, length: 4, color: "#403E43" },
+  "Door": { width: 3, length: 0.5, color: "#8A898C" },
+  "Window": { width: 3, length: 0.5, color: "#D3E4FD" },
+  
+  // Furniture and appliances
+  "Table": { width: 4, length: 3, color: "#FEC6A1" },
+  "Chair": { width: 2, length: 2, color: "#FDE1D3" },
+  "TV": { width: 4, length: 1, color: "#1EAEDB" },
+  "Refrigerator": { width: 3, length: 2.5, color: "#E5DEFF" },
+  "Washing Machine": { width: 2.5, length: 2.5, color: "#FFDEE2" },
+  "Bed": { width: 6, length: 4, color: "#F2FCE2" },
+  "Sofa": { width: 6, length: 3, color: "#FEF7CD" },
+} as const;
