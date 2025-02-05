@@ -1,14 +1,18 @@
-interface CompassProps {
-  size: number;
-  x: number;
-  y: number;
-}
+export class Compass {
+  private size: number;
+  private x: number;
+  private y: number;
 
-export const Compass = ({ size, x, y }: CompassProps) => {
-  const draw = (ctx: CanvasRenderingContext2D) => {
+  constructor({ size, x, y }: { size: number; x: number; y: number }) {
+    this.size = size;
+    this.x = x;
+    this.y = y;
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
     // Draw compass circle
     ctx.beginPath();
-    ctx.arc(x, y, size/2, 0, 2 * Math.PI);
+    ctx.arc(this.x, this.y, this.size/2, 0, 2 * Math.PI);
     ctx.fillStyle = "white";
     ctx.fill();
     ctx.strokeStyle = "#2C3E50";
@@ -17,8 +21,8 @@ export const Compass = ({ size, x, y }: CompassProps) => {
 
     // Draw compass needle
     ctx.beginPath();
-    ctx.moveTo(x, y + size/3);
-    ctx.lineTo(x, y - size/3);
+    ctx.moveTo(this.x, this.y + this.size/3);
+    ctx.lineTo(this.x, this.y - this.size/3);
     ctx.strokeStyle = "#E74C3C";
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -27,8 +31,6 @@ export const Compass = ({ size, x, y }: CompassProps) => {
     ctx.fillStyle = "#2C3E50";
     ctx.font = "bold 14px Inter";
     ctx.textAlign = "center";
-    ctx.fillText("N", x, y - size/2 - 5);
-  };
-
-  return { draw };
-};
+    ctx.fillText("N", this.x, this.y - this.size/2 - 5);
+  }
+}
