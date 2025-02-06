@@ -12,6 +12,7 @@ const Playground = () => {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [showPlot, setShowPlot] = useState(false);
+  const [components, setComponents] = useState<Component[]>([]);
 
   const {
     rooms,
@@ -23,6 +24,95 @@ const Playground = () => {
     handleCanvasMouseUp,
     handleRoomUpdate,
   } = useRoomManagement(dimensions);
+
+  const generateStructuralComponents = (width: number, length: number) => {
+    const newComponents: Component[] = [];
+    
+    // Add walls
+    newComponents.push({
+      id: 'wall-top',
+      type: 'Wall',
+      width: width,
+      length: 0.5,
+      x: 0,
+      y: 0,
+      rotation: 0
+    });
+    
+    newComponents.push({
+      id: 'wall-bottom',
+      type: 'Wall',
+      width: width,
+      length: 0.5,
+      x: 0,
+      y: length - 0.5,
+      rotation: 0
+    });
+    
+    newComponents.push({
+      id: 'wall-left',
+      type: 'Wall',
+      width: 0.5,
+      length: length,
+      x: 0,
+      y: 0,
+      rotation: 0
+    });
+    
+    newComponents.push({
+      id: 'wall-right',
+      type: 'Wall',
+      width: 0.5,
+      length: length,
+      x: width - 0.5,
+      y: 0,
+      rotation: 0
+    });
+
+    // Add main entrance door
+    newComponents.push({
+      id: 'main-door',
+      type: 'Door',
+      width: 3,
+      length: 0.5,
+      x: width - 4,
+      y: length - 0.5,
+      rotation: 0
+    });
+
+    // Add windows
+    newComponents.push({
+      id: 'window-top',
+      type: 'Window',
+      width: 3,
+      length: 0.5,
+      x: (width / 2) - 1.5,
+      y: 0,
+      rotation: 0
+    });
+
+    newComponents.push({
+      id: 'window-left',
+      type: 'Window',
+      width: 3,
+      length: 0.5,
+      x: 0,
+      y: (length / 2) - 1.5,
+      rotation: 90
+    });
+
+    newComponents.push({
+      id: 'window-right',
+      type: 'Window',
+      width: 3,
+      length: 0.5,
+      x: width - 0.5,
+      y: (length / 2) - 1.5,
+      rotation: 90
+    });
+
+    return newComponents;
+  };
 
   const findValidPosition = (
     room: { width: number; length: number },
@@ -82,9 +172,14 @@ const Playground = () => {
 
     setRooms(newRooms);
     setShowPlot(true);
+    
+    // Generate and add structural components
+    const structuralComponents = generateStructuralComponents(width, length);
+    setComponents(structuralComponents);
   };
 
   const handleComponentAdd = (component: Component) => {
+    setComponents(prev => [...prev, component]);
     toast({
       title: "Component Added",
       description: `${component.type} has been placed on the canvas`,
@@ -103,6 +198,7 @@ const Playground = () => {
         onMouseLeave={handleCanvasMouseUp}
         showPlot={showPlot}
         onComponentAdd={handleComponentAdd}
+        components={components}
       />
 
       <LeftSidebar
