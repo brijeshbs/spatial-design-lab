@@ -17,7 +17,14 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
 
   const handleDragStart = (e: React.DragEvent, type: string) => {
     const componentSpec = COMPONENTS[type as keyof typeof COMPONENTS];
-    if (!componentSpec) return;
+    if (!componentSpec) {
+      toast({
+        title: "Error",
+        description: `Invalid component type: ${type}`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     const newComponent: Component = {
       id: Math.random().toString(36).substr(2, 9),
@@ -28,7 +35,9 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
       y: 0,
       rotation: 0,
     };
+
     e.dataTransfer.setData("component", JSON.stringify(newComponent));
+    e.dataTransfer.effectAllowed = "copy";
   };
 
   const handleClick = (type: string) => {
