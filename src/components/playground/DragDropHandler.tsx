@@ -51,14 +51,15 @@ export const DragDropHandler = ({ position, scale, onComponentAdd }: DragDropHan
 
   return (
     <div 
-      className="absolute inset-0 w-full h-full pointer-events-none"
+      className="absolute inset-0 w-full h-full"
       style={{
         transform: `scale(${scale}) translate(${position.x}px, ${position.y}px)`,
         transformOrigin: "top left",
+        zIndex: 10,
       }}
     >
       <div 
-        className="absolute inset-0"
+        className="absolute inset-0 bg-transparent"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onDragEnter={(e) => {
@@ -67,9 +68,8 @@ export const DragDropHandler = ({ position, scale, onComponentAdd }: DragDropHan
         onDragLeave={(e) => {
           e.currentTarget.classList.remove('bg-blue-100/20');
         }}
-        style={{ pointerEvents: 'auto' }}
       >
-        <div className="absolute inset-0 grid grid-cols-[repeat(auto-fill,20px)] grid-rows-[repeat(auto-fill,20px)] opacity-10 pointer-events-none">
+        <div className="absolute inset-0 grid grid-cols-[repeat(auto-fill,20px)] grid-rows-[repeat(auto-fill,20px)] opacity-10">
           {Array.from({ length: 100 }).map((_, i) => (
             <div key={i} className="border border-dashed border-gray-300" />
           ))}
