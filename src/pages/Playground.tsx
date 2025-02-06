@@ -34,15 +34,25 @@ const Playground = () => {
     setComponents(structuralComponents);
     setShowPlot(true);
 
-    // Generate rooms based on room types
-    const generatedRooms = roomTypes.map((type, index) => ({
-      id: `room-${index}`,
-      type,
-      width: Math.min(15, Math.floor(width / 2)),  // Default room width
-      length: Math.min(15, Math.floor(length / 2)), // Default room length
-      x: index * 2, // Offset each room slightly
-      y: index * 2,
-    }));
+    // Calculate room dimensions based on plot size and number of rooms
+    const maxRoomsPerRow = Math.ceil(Math.sqrt(roomTypes.length));
+    const roomWidth = Math.floor(width / maxRoomsPerRow) - 2; // Leave some spacing
+    const roomLength = Math.floor(length / maxRoomsPerRow) - 2;
+
+    // Generate rooms with proper spacing
+    const generatedRooms = roomTypes.map((type, index) => {
+      const row = Math.floor(index / maxRoomsPerRow);
+      const col = index % maxRoomsPerRow;
+
+      return {
+        id: `room-${index}`,
+        type,
+        width: type === "Living Room" ? roomWidth + 2 : roomWidth,
+        length: type === "Living Room" ? roomLength + 2 : roomLength,
+        x: col * (roomWidth + 2), // Add spacing between rooms
+        y: row * (roomLength + 2),
+      };
+    });
 
     setRooms(generatedRooms);
   };
