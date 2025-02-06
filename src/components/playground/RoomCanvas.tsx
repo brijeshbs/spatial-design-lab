@@ -1,10 +1,8 @@
 import { useRef, useEffect } from "react";
-import { Room, Component } from "./types";
+import { Room } from "./types";
 import { drawPlotBorder, drawPlotDimensions } from "@/utils/canvasDrawing";
 import { RoomDrawer } from "./canvas/RoomDrawer";
 import { RoomHandles } from "./canvas/RoomHandles";
-import { ComponentDrawer } from "./canvas/ComponentDrawer";
-import { findClickedComponent } from "./canvas/ComponentInteraction";
 
 interface RoomCanvasProps {
   rooms: Room[];
@@ -16,8 +14,6 @@ interface RoomCanvasProps {
   onMouseLeave: () => void;
   rotation: number;
   showPlot?: boolean;
-  components: Component[];
-  onComponentMove?: (component: Component, newX: number, newY: number) => void;
 }
 
 export const RoomCanvas = ({
@@ -30,11 +26,8 @@ export const RoomCanvas = ({
   onMouseLeave,
   rotation,
   showPlot = false,
-  components,
-  onComponentMove,
 }: RoomCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const draggedComponentRef = useRef<{ component: Component; offsetX: number; offsetY: number } | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -68,87 +61,19 @@ export const RoomCanvas = ({
         RoomHandles({ ctx, room, gridSize });
       }
     });
-
-    // Draw components
-    components.forEach((component) => {
-      ComponentDrawer({ ctx, component, gridSize });
-    });
     
     ctx.restore();
-  }, [rooms, selectedRoom, dimensions, rotation, showPlot, components]);
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = e.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left - 50;
-    const y = e.clientY - rect.top - 50;
-    const gridSize = 20;
-
-    // Check for component click first
-    const clickedComponent = findClickedComponent({ components, x, y, gridSize });
-
-    if (clickedComponent) {
-      draggedComponentRef.current = {
-        component: clickedComponent,
-        offsetX: x - clickedComponent.x,
-        offsetY: y - clickedComponent.y
-      };
-      canvas.style.cursor = 'move';
-    } else {
-      // If no component was clicked, handle room selection
-      onMouseDown(e);
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = e.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left - 50;
-    const y = e.clientY - rect.top - 50;
-    const gridSize = 20;
-
-    if (draggedComponentRef.current && onComponentMove) {
-      const { component, offsetX, offsetY } = draggedComponentRef.current;
-      const newX = Math.round((x - offsetX) / gridSize) * gridSize;
-      const newY = Math.round((y - offsetY) / gridSize) * gridSize;
-      onComponentMove(component, newX, newY);
-    } else {
-      onMouseMove(e);
-    }
-
-    // Update cursor based on what's being hovered
-    if (selectedRoom) {
-      const roomX = selectedRoom.x * gridSize;
-      const roomY = selectedRoom.y * gridSize;
-      const roomWidth = selectedRoom.width * gridSize;
-      const roomLength = selectedRoom.length * gridSize;
-      
-      if (x >= roomX && x <= roomX + roomWidth && 
-          y >= roomY && y <= roomY + roomLength) {
-        canvas.style.cursor = 'move';
-      } else {
-        canvas.style.cursor = 'default';
-      }
-    }
-  };
+  }, [rooms, selectedRoom, dimensions, rotation, showPlot]);
 
   return (
     <canvas
       ref={canvasRef}
       className="absolute inset-0"
       style={{ touchAction: 'none' }}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={(e) => {
-        draggedComponentRef.current = null;
-        e.currentTarget.style.cursor = 'default';
-        onMouseUp();
-      }}
-      onMouseLeave={(e) => {
-        draggedComponentRef.current = null;
-        e.currentTarget.style.cursor = 'default';
-        onMouseLeave();
-      }}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseLeave}
     />
   );
 };

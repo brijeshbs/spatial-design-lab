@@ -1,13 +1,11 @@
 import { useState, useCallback } from "react";
-import { Room, Component } from "./types";
+import { Room } from "./types";
 import { ThreeDCanvas } from "./ThreeDCanvas";
 import { InfiniteGrid } from "./InfiniteGrid";
-import { DragDropHandler } from "./DragDropHandler";
 import { CanvasControls } from "./CanvasControls";
 import { CanvasViewport } from "./canvas/CanvasViewport";
 import { TransformableCanvas } from "./canvas/TransformableCanvas";
 import { useCanvasControls } from "./canvas/useCanvasControls";
-import { useComponentState } from "@/hooks/useComponentState";
 
 interface CanvasAreaProps {
   rooms: Room[];
@@ -18,8 +16,6 @@ interface CanvasAreaProps {
   onMouseUp: () => void;
   onMouseLeave: () => void;
   showPlot?: boolean;
-  onComponentAdd?: (component: Component) => void;
-  components: Component[];
 }
 
 export const CanvasArea = ({
@@ -31,8 +27,6 @@ export const CanvasArea = ({
   onMouseUp,
   onMouseLeave,
   showPlot = false,
-  onComponentAdd,
-  components,
 }: CanvasAreaProps) => {
   const [rotation, setRotation] = useState(0);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
@@ -46,16 +40,6 @@ export const CanvasArea = ({
     handlePanMove,
     handlePanEnd,
   } = useCanvasControls();
-
-  const handleComponentAdd = useCallback((component: Component) => {
-    if (onComponentAdd) {
-      onComponentAdd(component);
-    }
-  }, [onComponentAdd]);
-
-  const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {
-    // This will be handled by the parent component through state updates
-  }, []);
 
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     handlePanStart(e);
@@ -95,13 +79,6 @@ export const CanvasArea = ({
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={onMouseLeave}
             showPlot={showPlot}
-            components={components}
-            onComponentMove={handleComponentMove}
-          />
-          <DragDropHandler
-            position={position}
-            scale={scale}
-            onComponentAdd={handleComponentAdd}
           />
         </>
       ) : (
@@ -109,7 +86,6 @@ export const CanvasArea = ({
           rooms={rooms}
           selectedRoom={selectedRoom}
           dimensions={dimensions}
-          components={components}
         />
       )}
       

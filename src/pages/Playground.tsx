@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PlaygroundLayout } from "@/components/playground/layout/PlaygroundLayout";
-import { Component, Room } from "@/components/playground/types";
+import { Room } from "@/components/playground/types";
 import { usePlotState } from "@/hooks/usePlotState";
 import { useRoomManagement } from "@/hooks/useRoomManagement";
 import { toast } from "@/components/ui/use-toast";
@@ -12,12 +12,7 @@ const Playground = () => {
   const {
     dimensions,
     showPlot,
-    components,
-    generateStructuralComponents,
-    handleComponentAdd,
-    handleComponentMove,
     setShowPlot,
-    setComponents,
   } = usePlotState();
 
   const {
@@ -32,9 +27,6 @@ const Playground = () => {
   } = useRoomManagement(dimensions);
 
   const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
-    // Generate structural components
-    const structuralComponents = generateStructuralComponents(width, length);
-    setComponents(structuralComponents);
     setShowPlot(true);
 
     // Define room sizes based on the image layout
@@ -107,8 +99,6 @@ const Playground = () => {
       onMouseUp={handleCanvasMouseUp}
       onMouseLeave={handleCanvasMouseUp}
       showPlot={showPlot}
-      onComponentAdd={handleComponentAdd}
-      components={components}
       onGenerateLayout={generateInitialLayout}
       onUpdateRoom={handleRoomUpdate}
     />
