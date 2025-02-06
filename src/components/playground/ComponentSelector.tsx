@@ -16,6 +16,7 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
   );
 
   const handleDragStart = (e: React.DragEvent, type: string) => {
+    e.stopPropagation();
     const componentSpec = COMPONENTS[type as keyof typeof COMPONENTS];
     if (!componentSpec) {
       toast({
@@ -40,7 +41,8 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
     e.dataTransfer.effectAllowed = "copy";
   };
 
-  const handleClick = (type: string) => {
+  const handleClick = (e: React.MouseEvent, type: string) => {
+    e.stopPropagation();
     const componentSpec = COMPONENTS[type as keyof typeof COMPONENTS];
     if (!componentSpec) {
       toast({
@@ -81,7 +83,7 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
                 className="w-full justify-start cursor-move"
                 draggable
                 onDragStart={(e) => handleDragStart(e, type)}
-                onClick={() => handleClick(type)}
+                onClick={(e) => handleClick(e, type)}
               >
                 {type}
               </Button>
@@ -103,7 +105,7 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
                 className="w-full justify-start cursor-move"
                 draggable
                 onDragStart={(e) => handleDragStart(e, type)}
-                onClick={() => handleClick(type)}
+                onClick={(e) => handleClick(e, type)}
               >
                 {type}
               </Button>
