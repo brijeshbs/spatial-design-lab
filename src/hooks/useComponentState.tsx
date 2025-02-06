@@ -23,9 +23,18 @@ export const useComponentState = () => {
     );
   }, []);
 
+  const removeComponent = useCallback((componentId: string) => {
+    setComponents(prev => prev.filter(comp => comp.id !== componentId));
+    toast({
+      title: "Component Removed",
+      description: "The component has been removed from the canvas",
+    });
+  }, []);
+
   return {
     components,
     addComponent,
     updateComponentPosition,
+    removeComponent,
   };
 };
