@@ -19,6 +19,7 @@ interface CanvasAreaProps {
   onMouseLeave: () => void;
   showPlot?: boolean;
   onComponentAdd?: (component: Component) => void;
+  components: Component[];
 }
 
 export const CanvasArea = ({
@@ -31,6 +32,7 @@ export const CanvasArea = ({
   onMouseLeave,
   showPlot = false,
   onComponentAdd,
+  components,
 }: CanvasAreaProps) => {
   const [rotation, setRotation] = useState(0);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
@@ -45,22 +47,15 @@ export const CanvasArea = ({
     handlePanEnd,
   } = useCanvasControls();
 
-  const {
-    components,
-    addComponent,
-    updateComponentPosition,
-  } = useComponentState();
-
   const handleComponentAdd = useCallback((component: Component) => {
-    addComponent(component);
     if (onComponentAdd) {
       onComponentAdd(component);
     }
-  }, [addComponent, onComponentAdd]);
+  }, [onComponentAdd]);
 
   const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {
-    updateComponentPosition(component.id, newX, newY);
-  }, [updateComponentPosition]);
+    // This will be handled by the parent component through state updates
+  }, []);
 
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     handlePanStart(e);
