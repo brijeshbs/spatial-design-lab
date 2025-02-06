@@ -4,12 +4,28 @@ import { toast } from "@/components/ui/use-toast";
 
 export const isRoomOverlapping = (room: Room, existingRooms: Room[]): boolean => {
   return existingRooms.some(existingRoom => {
-    const overlapX = (room.x < existingRoom.x + existingRoom.width) &&
-                    (room.x + room.width > existingRoom.x);
-    const overlapY = (room.y < existingRoom.y + existingRoom.length) &&
-                    (room.y + room.length > existingRoom.y);
+    // Add a small buffer (1 unit) between rooms
+    const buffer = 1;
+    const overlapX = (room.x < existingRoom.x + existingRoom.width + buffer) &&
+                    (room.x + room.width + buffer > existingRoom.x);
+    const overlapY = (room.y < existingRoom.y + existingRoom.length + buffer) &&
+                    (room.y + room.length + buffer > existingRoom.y);
     return overlapX && overlapY;
   });
+};
+
+export const isRoomWithinPlot = (
+  room: Room,
+  plotWidth: number,
+  plotLength: number
+): boolean => {
+  const buffer = 1; // Buffer from plot edges
+  return (
+    room.x >= buffer &&
+    room.y >= buffer &&
+    (room.x + room.width) <= (plotWidth - buffer) &&
+    (room.y + room.length) <= (plotLength - buffer)
+  );
 };
 
 export const findValidPosition = (
@@ -17,29 +33,34 @@ export const findValidPosition = (
   existingRooms: Room[], 
   maxWidth: number, 
   maxLength: number,
-  attempts = 100
+  attempts = 200 // Increased attempts for better coverage
 ): Room | null => {
-  // Start from the center of the plot
-  const centerX = Math.floor((maxWidth - room.width) / 2);
-  const centerY = Math.floor((maxLength - room.length) / 2);
+  // Try grid-based positions first
+  const gridSize = 5; // Grid size for organized placement
   
-  // Try center position first
-  const centerRoom = { ...room, x: centerX, y: centerY };
-  if (!isRoomOverlapping(centerRoom, existingRooms)) {
-    return centerRoom;
+  for (let y = 0; y < maxLength; y += gridSize) {
+    for (let x = 0; x < maxWidth; x += gridSize) {
+      const testRoom = { ...room, x, y };
+      if (isRoomWithinPlot(testRoom, maxWidth, maxLength) && 
+          !isRoomOverlapping(testRoom, existingRooms)) {
+        return testRoom;
+      }
+    }
   }
 
-  // If center doesn't work, try other positions
+  // If grid-based placement fails, try random positions
   for (let i = 0; i < attempts; i++) {
-    const x = Math.floor(Math.random() * (maxWidth - room.width));
-    const y = Math.floor(Math.random() * (maxLength - room.length));
+    const x = Math.floor(Math.random() * (maxWidth - room.width - 2)) + 1;
+    const y = Math.floor(Math.random() * (maxLength - room.length - 2)) + 1;
     
     const testRoom = { ...room, x, y };
     
-    if (!isRoomOverlapping(testRoom, existingRooms)) {
+    if (isRoomWithinPlot(testRoom, maxWidth, maxLength) && 
+        !isRoomOverlapping(testRoom, existingRooms)) {
       return testRoom;
     }
   }
+  
   return null;
 };
 
