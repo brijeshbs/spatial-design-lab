@@ -54,6 +54,10 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
     };
 
     onSelect(newComponent);
+    toast({
+      title: "Component Added",
+      description: `${type} has been placed on the canvas`,
+    });
   };
 
   return (
