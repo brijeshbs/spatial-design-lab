@@ -40,9 +40,8 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
       return;
     }
 
-    // Generate random position within visible area
-    const randomX = Math.floor(Math.random() * 400); // Random X between 0 and 400
-    const randomY = Math.floor(Math.random() * 400); // Random Y between 0 and 400
+    const randomX = Math.floor(Math.random() * 400);
+    const randomY = Math.floor(Math.random() * 400);
 
     const newComponent: Component = {
       id: Math.random().toString(36).substr(2, 9),
@@ -54,13 +53,7 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
       rotation: 0,
     };
 
-    if (onSelect) {
-      onSelect(newComponent);
-      toast({
-        title: "Component Added",
-        description: `${type} has been placed on the canvas`,
-      });
-    }
+    onSelect(newComponent);
   };
 
   return (

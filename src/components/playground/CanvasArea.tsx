@@ -8,6 +8,7 @@ import { CanvasViewport } from "./canvas/CanvasViewport";
 import { TransformableCanvas } from "./canvas/TransformableCanvas";
 import { useCanvasControls } from "./canvas/useCanvasControls";
 import { useComponentState } from "@/hooks/useComponentState";
+import { toast } from "@/components/ui/use-toast";
 
 interface CanvasAreaProps {
   rooms: Room[];
@@ -56,6 +57,10 @@ export const CanvasArea = ({
     if (onComponentAdd) {
       onComponentAdd(component);
     }
+    toast({
+      title: "Component Added",
+      description: `${component.type} has been placed on the canvas`,
+    });
   }, [addComponent, onComponentAdd]);
 
   const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {

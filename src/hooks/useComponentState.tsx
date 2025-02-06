@@ -7,10 +7,6 @@ export const useComponentState = () => {
 
   const addComponent = useCallback((component: Component) => {
     setComponents(prev => [...prev, component]);
-    toast({
-      title: "Component Added",
-      description: `${component.type} has been placed on the canvas`,
-    });
   }, []);
 
   const updateComponentPosition = useCallback((componentId: string, newX: number, newY: number) => {
