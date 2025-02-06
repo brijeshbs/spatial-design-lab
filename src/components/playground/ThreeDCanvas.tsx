@@ -1,18 +1,20 @@
 import { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { Room } from './types';
+import { Room, Component } from './types';
 import { createPlotStructure } from './three/PlotStructure';
 import { createRoomStructure } from './three/RoomStructure';
 import { SceneSetup } from './three/SceneSetup';
+import { ComponentRenderer } from './three/ComponentRenderer';
 
 interface ThreeDCanvasProps {
   rooms: Room[];
   selectedRoom: Room | null;
   dimensions: { width: number; length: number };
+  components: Component[];
 }
 
-export const ThreeDCanvas = ({ rooms, selectedRoom, dimensions }: ThreeDCanvasProps) => {
+export const ThreeDCanvas = ({ rooms, selectedRoom, dimensions, components }: ThreeDCanvasProps) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -74,13 +76,14 @@ export const ThreeDCanvas = ({ rooms, selectedRoom, dimensions }: ThreeDCanvasPr
     };
   }, [dimensions]);
 
-  // Update rooms when they change
+  // Update rooms and components when they change
   useEffect(() => {
     if (!sceneRef.current) return;
 
-    // Clear existing rooms
+    // Clear existing rooms and components
     const existingMeshes = sceneRef.current.children.filter(
-      child => child instanceof THREE.Mesh && child.userData.isRoom
+      child => child instanceof THREE.Mesh && 
+      (child.userData.isRoom || child.userData.isComponent)
     );
     existingMeshes.forEach(mesh => sceneRef.current?.remove(mesh));
 
@@ -88,7 +91,12 @@ export const ThreeDCanvas = ({ rooms, selectedRoom, dimensions }: ThreeDCanvasPr
     rooms.forEach(room => {
       createRoomStructure(sceneRef.current!, room, selectedRoom, dimensions);
     });
-  }, [rooms, selectedRoom, dimensions]);
+
+    // Add components
+    components.forEach(component => {
+      ComponentRenderer({ scene: sceneRef.current!, component });
+    });
+  }, [rooms, selectedRoom, dimensions, components]);
 
   // Handle window resize
   useEffect(() => {

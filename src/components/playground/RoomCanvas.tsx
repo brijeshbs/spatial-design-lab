@@ -1,9 +1,9 @@
 import { useRef, useEffect } from "react";
-import { Room } from "./types";
-import { drawPlotBorder, drawPlotDimensions } from "@/utils/canvasDrawing";
-import { RoomDrawer } from "./canvas/RoomDrawer";
-import { RoomHandles } from "./canvas/RoomHandles";
-import { getResizeEdge } from "@/utils/roomInteractionUtils";
+import { Room, Component } from "./types";
+import { drawPlotBorder, drawPlotDimensions, drawRoomHandles } from "@/utils/canvasDrawing";
+import { drawRoom, drawRoomWindows, drawRoomDoors, drawRoomLabel } from "@/utils/canvasRoomUtils";
+import { ComponentDrawer } from "./canvas/ComponentDrawer";
+import { findClickedComponent } from "./canvas/ComponentInteraction";
 
 interface RoomCanvasProps {
   rooms: Room[];
@@ -15,6 +15,8 @@ interface RoomCanvasProps {
   onMouseLeave: () => void;
   rotation: number;
   showPlot?: boolean;
+  components: Component[];
+  onComponentMove?: (component: Component, newX: number, newY: number) => void;
 }
 
 export const RoomCanvas = ({
@@ -27,8 +29,11 @@ export const RoomCanvas = ({
   onMouseLeave,
   rotation,
   showPlot = false,
+  components,
+  onComponentMove,
 }: RoomCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const draggedComponentRef = useRef<{ component: Component; offsetX: number; offsetY: number } | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -48,87 +53,127 @@ export const RoomCanvas = ({
     ctx.translate(50, 50);
     
     if (showPlot) {
-      drawPlotBorder(ctx, dimensions, gridSize);
+      ctx.strokeStyle = "#403E43";
+      ctx.lineWidth = wallThickness;
+      ctx.strokeRect(
+        wallThickness / 2,
+        wallThickness / 2,
+        dimensions.width * gridSize - wallThickness,
+        dimensions.length * gridSize - wallThickness
+      );
+      
       drawPlotDimensions(ctx, dimensions, gridSize);
+      
+      ctx.fillStyle = "#2C3E50";
+      ctx.fillRect(
+        dimensions.width * gridSize - (3 * gridSize),
+        dimensions.length * gridSize - (gridSize / 2),
+        3 * gridSize,
+        gridSize / 2
+      );
     }
 
     rooms.forEach((room) => {
       const isSelected = selectedRoom?.id === room.id;
-      RoomDrawer({ ctx, room, isSelected, gridSize, wallThickness });
-      
+      drawRoom(ctx, room, isSelected, gridSize, wallThickness);
+      drawRoomWindows(ctx, room, gridSize);
+      drawRoomDoors(ctx, room, dimensions, gridSize);
+      drawRoomLabel(ctx, room, gridSize);
+
       if (isSelected) {
-        RoomHandles({ ctx, room, gridSize });
+        drawRoomHandles(ctx, room, gridSize);
       }
+    });
+
+    components.forEach((component) => {
+      ComponentDrawer({ ctx, component, gridSize });
     });
     
     ctx.restore();
-  }, [rooms, selectedRoom, dimensions, rotation, showPlot]);
+  }, [rooms, selectedRoom, dimensions, rotation, showPlot, components]);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas || !selectedRoom) {
-      e.currentTarget.style.cursor = 'default';
-      return;
-    }
+  const isOverRoomHandle = (x: number, y: number, room: Room): boolean => {
+    const gridSize = 20;
+    const handleSize = 8;
+    const roomX = room.x * gridSize;
+    const roomY = room.y * gridSize;
+    const roomWidth = room.width * gridSize;
+    const roomLength = room.length * gridSize;
 
+    // Check if cursor is near any edge or corner
+    const nearRight = Math.abs(x - (roomX + roomWidth)) <= handleSize;
+    const nearBottom = Math.abs(y - (roomY + roomLength)) <= handleSize;
+    const nearLeft = Math.abs(x - roomX) <= handleSize;
+    const nearTop = Math.abs(y - roomY) <= handleSize;
+
+    // Return true if near any edge or corner
+    return (nearRight && (nearTop || nearBottom)) || 
+           (nearLeft && (nearTop || nearBottom)) ||
+           (nearRight && y >= roomY && y <= roomY + roomLength) ||
+           (nearLeft && y >= roomY && y <= roomY + roomLength) ||
+           (nearTop && x >= roomX && x <= roomX + roomWidth) ||
+           (nearBottom && x >= roomX && x <= roomX + roomWidth);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left - 50;
     const y = e.clientY - rect.top - 50;
     const gridSize = 20;
-    const handleSize = 10;
 
-    // Check if mouse is over the selected room
-    const roomX = selectedRoom.x * gridSize;
-    const roomY = selectedRoom.y * gridSize;
-    const roomWidth = selectedRoom.width * gridSize;
-    const roomLength = selectedRoom.length * gridSize;
+    const clickedComponent = findClickedComponent({ components, x, y, gridSize });
 
-    const isOverRoom = x >= roomX && x <= roomX + roomWidth && 
-                      y >= roomY && y <= roomY + roomLength;
-
-    if (isOverRoom) {
-      const edge = getResizeEdge(x, y, selectedRoom, gridSize, handleSize);
-      
-      if (edge) {
-        switch (edge) {
-          case 'top':
-          case 'bottom':
-            e.currentTarget.style.cursor = 'ns-resize';
-            break;
-          case 'left':
-          case 'right':
-            e.currentTarget.style.cursor = 'ew-resize';
-            break;
-          case 'topLeft':
-          case 'bottomRight':
-            e.currentTarget.style.cursor = 'nwse-resize';
-            break;
-          case 'topRight':
-          case 'bottomLeft':
-            e.currentTarget.style.cursor = 'nesw-resize';
-            break;
-        }
-      } else {
-        e.currentTarget.style.cursor = 'move';
-      }
+    if (clickedComponent) {
+      draggedComponentRef.current = {
+        component: clickedComponent,
+        offsetX: x - clickedComponent.x,
+        offsetY: y - clickedComponent.y
+      };
+      canvas.style.cursor = 'move';
     } else {
-      e.currentTarget.style.cursor = 'default';
+      onMouseDown(e);
     }
-
-    const adjustedEvent = { 
-      ...e, 
-      clientX: x, 
-      clientY: y 
-    } as React.MouseEvent<HTMLCanvasElement>;
-    
-    onMouseMove(adjustedEvent);
   };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = e.currentTarget;
+    const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left - 50;
     const y = e.clientY - rect.top - 50;
-    onMouseDown({ ...e, clientX: x, clientY: y } as React.MouseEvent<HTMLCanvasElement>);
+    const gridSize = 20;
+
+    if (draggedComponentRef.current && onComponentMove) {
+      const { component, offsetX, offsetY } = draggedComponentRef.current;
+      const newX = Math.round((x - offsetX) / gridSize) * gridSize;
+      const newY = Math.round((y - offsetY) / gridSize) * gridSize;
+      onComponentMove(component, newX, newY);
+      return;
+    }
+
+    // Check for room hover and handle hover
+    const hoveredRoom = rooms.find(room => {
+      const roomX = room.x * gridSize;
+      const roomY = room.y * gridSize;
+      const roomWidth = room.width * gridSize;
+      const roomLength = room.length * gridSize;
+      
+      return x >= roomX && x <= roomX + roomWidth && 
+             y >= roomY && y <= roomY + roomLength;
+    });
+
+    if (hoveredRoom && selectedRoom?.id === hoveredRoom.id) {
+      if (isOverRoomHandle(x, y, hoveredRoom)) {
+        canvas.style.cursor = 'nwse-resize';
+      } else {
+        canvas.style.cursor = 'move';
+      }
+    } else {
+      const hoveringComponent = findClickedComponent({ components, x, y, gridSize });
+      canvas.style.cursor = hoveringComponent ? 'move' : 'default';
+    }
+
+    onMouseMove(e);
   };
 
   return (
@@ -138,8 +183,16 @@ export const RoomCanvas = ({
       style={{ touchAction: 'none' }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseLeave}
+      onMouseUp={(e) => {
+        draggedComponentRef.current = null;
+        e.currentTarget.style.cursor = 'default';
+        onMouseUp();
+      }}
+      onMouseLeave={(e) => {
+        draggedComponentRef.current = null;
+        e.currentTarget.style.cursor = 'default';
+        onMouseLeave();
+      }}
     />
   );
 };

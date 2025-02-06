@@ -18,21 +18,6 @@ export const validateRoomDimensions = (width: number, length: number): string | 
   return null;
 };
 
-export const validateTotalRoomArea = (roomTypes: string[], plotWidth: number, plotLength: number): boolean => {
-  const totalRoomArea = calculateTotalRoomArea(roomTypes);
-  const plotArea = plotWidth * plotLength;
-  
-  if (totalRoomArea > plotArea) {
-    toast({
-      title: "Invalid Room Configuration",
-      description: "Total room area cannot exceed plot area. Please remove some rooms or increase plot size.",
-      variant: "destructive",
-    });
-    return false;
-  }
-  return true;
-};
-
 export const handleLivingRoomModification = () => {
   toast({
     title: "Cannot Modify Living Room",

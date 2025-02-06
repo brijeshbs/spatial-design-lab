@@ -1,11 +1,10 @@
-import { useState, useCallback } from "react";
-import { Room } from "./types";
+import { useState, useCallback, useEffect } from "react";
+import { Room, Component } from "./types";
+import { RoomCanvas } from "./RoomCanvas";
 import { ThreeDCanvas } from "./ThreeDCanvas";
 import { InfiniteGrid } from "./InfiniteGrid";
+import { DragDropHandler } from "./DragDropHandler";
 import { CanvasControls } from "./CanvasControls";
-import { CanvasViewport } from "./canvas/CanvasViewport";
-import { TransformableCanvas } from "./canvas/TransformableCanvas";
-import { useCanvasControls } from "./canvas/useCanvasControls";
 
 interface CanvasAreaProps {
   rooms: Room[];
@@ -16,6 +15,8 @@ interface CanvasAreaProps {
   onMouseUp: () => void;
   onMouseLeave: () => void;
   showPlot?: boolean;
+  components: Component[];
+  onComponentAdd?: (component: Component) => void;
 }
 
 export const CanvasArea = ({
@@ -27,58 +28,106 @@ export const CanvasArea = ({
   onMouseUp,
   onMouseLeave,
   showPlot = false,
+  components,
+  onComponentAdd,
 }: CanvasAreaProps) => {
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [rotation, setRotation] = useState(0);
+  const [isPanning, setIsPanning] = useState(false);
+  const [startPanPosition, setStartPanPosition] = useState({ x: 0, y: 0 });
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
-  
-  const {
-    scale,
-    position,
-    isPanning,
-    handleWheel,
-    handlePanStart,
-    handlePanMove,
-    handlePanEnd,
-  } = useCanvasControls();
+  const [localComponents, setLocalComponents] = useState<Component[]>(components);
 
-  const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    handlePanStart(e);
-    if (!isPanning) {
+  useEffect(() => {
+    setLocalComponents(components);
+  }, [components]);
+
+  const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {
+    setLocalComponents(prevComponents =>
+      prevComponents.map(c =>
+        c.id === component.id
+          ? { ...c, x: newX, y: newY }
+          : c
+      )
+    );
+  }, []);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.ctrlKey) {
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      setScale(prevScale => Math.min(Math.max(0.1, prevScale * delta), 5));
+    } else {
+      setPosition(prev => ({
+        x: prev.x - e.deltaX,
+        y: prev.y - e.deltaY,
+      }));
+    }
+  }, []);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (e.button === 1 || e.button === 2) {
+      setIsPanning(true);
+      setStartPanPosition({ x: e.clientX - position.x, y: e.clientY - position.y });
+    } else {
       onMouseDown(e);
     }
-  }, [handlePanStart, isPanning, onMouseDown]);
+  }, [position, onMouseDown]);
 
-  const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    handlePanMove(e);
-    if (!isPanning) {
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (isPanning) {
+      setPosition({
+        x: e.clientX - startPanPosition.x,
+        y: e.clientY - startPanPosition.y,
+      });
+    } else {
       onMouseMove(e);
     }
-  }, [handlePanMove, isPanning, onMouseMove]);
+  }, [isPanning, startPanPosition, onMouseMove]);
 
-  const handleCanvasMouseUp = useCallback(() => {
-    handlePanEnd();
-    if (!isPanning) {
+  const handleMouseUp = useCallback(() => {
+    if (isPanning) {
+      setIsPanning(false);
+    } else {
       onMouseUp();
     }
-  }, [handlePanEnd, isPanning, onMouseUp]);
+  }, [isPanning, onMouseUp]);
 
   return (
-    <CanvasViewport onWheel={handleWheel}>
+    <div 
+      className="fixed inset-0 overflow-hidden"
+      onWheel={handleWheel}
+      onContextMenu={(e) => e.preventDefault()}
+    >
       {viewMode === '2d' ? (
         <>
           <InfiniteGrid width={window.innerWidth} height={window.innerHeight} scale={scale} position={position} />
-          <TransformableCanvas
-            scale={scale}
+          <div 
+            className="absolute inset-0"
+            style={{
+              transform: `scale(${scale}) translate(${position.x}px, ${position.y}px) rotate(${rotation}deg)`,
+              transformOrigin: "center",
+            }}
+          >
+            <RoomCanvas
+              rooms={rooms}
+              selectedRoom={selectedRoom}
+              dimensions={dimensions}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={onMouseLeave}
+              rotation={rotation}
+              showPlot={showPlot}
+              components={localComponents}
+              onComponentMove={handleComponentMove}
+            />
+          </div>
+          <DragDropHandler
             position={position}
-            rotation={rotation}
-            rooms={rooms}
-            selectedRoom={selectedRoom}
-            dimensions={dimensions}
-            onMouseDown={handleCanvasMouseDown}
-            onMouseMove={handleCanvasMouseMove}
-            onMouseUp={handleCanvasMouseUp}
-            onMouseLeave={onMouseLeave}
-            showPlot={showPlot}
+            scale={scale}
+            onComponentAdd={onComponentAdd}
           />
         </>
       ) : (
@@ -86,6 +135,7 @@ export const CanvasArea = ({
           rooms={rooms}
           selectedRoom={selectedRoom}
           dimensions={dimensions}
+          components={localComponents}
         />
       )}
       
@@ -95,6 +145,6 @@ export const CanvasArea = ({
         rotation={rotation}
         setRotation={setRotation}
       />
-    </CanvasViewport>
+    </div>
   );
 };
