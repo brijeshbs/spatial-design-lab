@@ -18,6 +18,7 @@ interface CanvasAreaProps {
   onMouseUp: () => void;
   onMouseLeave: () => void;
   showPlot?: boolean;
+  onComponentAdd?: (component: Component) => void;
 }
 
 export const CanvasArea = ({
@@ -29,6 +30,7 @@ export const CanvasArea = ({
   onMouseUp,
   onMouseLeave,
   showPlot = false,
+  onComponentAdd,
 }: CanvasAreaProps) => {
   const [rotation, setRotation] = useState(0);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
@@ -48,6 +50,13 @@ export const CanvasArea = ({
     addComponent,
     updateComponentPosition,
   } = useComponentState();
+
+  const handleComponentAdd = useCallback((component: Component) => {
+    addComponent(component);
+    if (onComponentAdd) {
+      onComponentAdd(component);
+    }
+  }, [addComponent, onComponentAdd]);
 
   const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {
     updateComponentPosition(component.id, newX, newY);
@@ -97,7 +106,7 @@ export const CanvasArea = ({
           <DragDropHandler
             position={position}
             scale={scale}
-            onComponentAdd={addComponent}
+            onComponentAdd={handleComponentAdd}
           />
         </>
       ) : (

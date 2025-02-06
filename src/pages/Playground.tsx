@@ -84,6 +84,13 @@ const Playground = () => {
     setShowPlot(true);
   };
 
+  const handleComponentAdd = (component: Component) => {
+    toast({
+      title: "Component Added",
+      description: `${component.type} has been placed on the canvas`,
+    });
+  };
+
   return (
     <div className="absolute inset-0 overflow-visible">
       <CanvasArea
@@ -95,18 +102,14 @@ const Playground = () => {
         onMouseUp={handleCanvasMouseUp}
         onMouseLeave={handleCanvasMouseUp}
         showPlot={showPlot}
+        onComponentAdd={handleComponentAdd}
       />
 
       <LeftSidebar
         showLeftSidebar={showLeftSidebar}
         setShowLeftSidebar={setShowLeftSidebar}
         onGenerate={generateInitialLayout}
-        onComponentSelect={(component: Component) => {
-          toast({
-            title: "Component Added",
-            description: `${component.type} has been placed on the canvas`,
-          });
-        }}
+        onComponentSelect={handleComponentAdd}
       />
 
       <RightSidebar
