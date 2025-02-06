@@ -62,6 +62,10 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
     };
 
     onSelect(newComponent);
+    toast({
+      title: "Component Added",
+      description: `${type} has been added to the canvas`,
+    });
   };
 
   return (
@@ -74,7 +78,7 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
               <Button
                 key={type}
                 variant="outline"
-                className="w-full justify-start cursor-pointer"
+                className="w-full justify-start cursor-move"
                 draggable
                 onDragStart={(e) => handleDragStart(e, type)}
                 onClick={() => handleClick(type)}
@@ -96,7 +100,7 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
               <Button
                 key={type}
                 variant="outline"
-                className="w-full justify-start cursor-pointer"
+                className="w-full justify-start cursor-move"
                 draggable
                 onDragStart={(e) => handleDragStart(e, type)}
                 onClick={() => handleClick(type)}

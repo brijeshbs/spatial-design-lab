@@ -42,6 +42,7 @@ export const RoomCanvas = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Set canvas size to match window
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
@@ -53,26 +54,11 @@ export const RoomCanvas = ({
     ctx.translate(50, 50);
     
     if (showPlot) {
-      ctx.strokeStyle = "#403E43";
-      ctx.lineWidth = wallThickness;
-      ctx.strokeRect(
-        wallThickness / 2,
-        wallThickness / 2,
-        dimensions.width * gridSize - wallThickness,
-        dimensions.length * gridSize - wallThickness
-      );
-      
+      drawPlotBorder(ctx, dimensions, gridSize);
       drawPlotDimensions(ctx, dimensions, gridSize);
-      
-      ctx.fillStyle = "#2C3E50";
-      ctx.fillRect(
-        dimensions.width * gridSize - (3 * gridSize),
-        dimensions.length * gridSize - (gridSize / 2),
-        3 * gridSize,
-        gridSize / 2
-      );
     }
 
+    // Draw rooms
     rooms.forEach((room) => {
       const isSelected = selectedRoom?.id === room.id;
       drawRoom(ctx, room, isSelected, gridSize, wallThickness);
@@ -85,35 +71,13 @@ export const RoomCanvas = ({
       }
     });
 
+    // Draw components
     components.forEach((component) => {
       ComponentDrawer({ ctx, component, gridSize });
     });
     
     ctx.restore();
   }, [rooms, selectedRoom, dimensions, rotation, showPlot, components]);
-
-  const isOverRoomHandle = (x: number, y: number, room: Room): boolean => {
-    const gridSize = 20;
-    const handleSize = 8;
-    const roomX = room.x * gridSize;
-    const roomY = room.y * gridSize;
-    const roomWidth = room.width * gridSize;
-    const roomLength = room.length * gridSize;
-
-    // Check if cursor is near any edge or corner
-    const nearRight = Math.abs(x - (roomX + roomWidth)) <= handleSize;
-    const nearBottom = Math.abs(y - (roomY + roomLength)) <= handleSize;
-    const nearLeft = Math.abs(x - roomX) <= handleSize;
-    const nearTop = Math.abs(y - roomY) <= handleSize;
-
-    // Return true if near any edge or corner
-    return (nearRight && (nearTop || nearBottom)) || 
-           (nearLeft && (nearTop || nearBottom)) ||
-           (nearRight && y >= roomY && y <= roomY + roomLength) ||
-           (nearLeft && y >= roomY && y <= roomY + roomLength) ||
-           (nearTop && x >= roomX && x <= roomX + roomWidth) ||
-           (nearBottom && x >= roomX && x <= roomX + roomWidth);
-  };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
@@ -122,6 +86,7 @@ export const RoomCanvas = ({
     const y = e.clientY - rect.top - 50;
     const gridSize = 20;
 
+    // Check for component click first
     const clickedComponent = findClickedComponent({ components, x, y, gridSize });
 
     if (clickedComponent) {
@@ -132,6 +97,7 @@ export const RoomCanvas = ({
       };
       canvas.style.cursor = 'move';
     } else {
+      // If no component was clicked, handle room selection
       onMouseDown(e);
     }
   };
@@ -148,32 +114,24 @@ export const RoomCanvas = ({
       const newX = Math.round((x - offsetX) / gridSize) * gridSize;
       const newY = Math.round((y - offsetY) / gridSize) * gridSize;
       onComponentMove(component, newX, newY);
-      return;
-    }
-
-    // Check for room hover and handle hover
-    const hoveredRoom = rooms.find(room => {
-      const roomX = room.x * gridSize;
-      const roomY = room.y * gridSize;
-      const roomWidth = room.width * gridSize;
-      const roomLength = room.length * gridSize;
-      
-      return x >= roomX && x <= roomX + roomWidth && 
-             y >= roomY && y <= roomY + roomLength;
-    });
-
-    if (hoveredRoom && selectedRoom?.id === hoveredRoom.id) {
-      if (isOverRoomHandle(x, y, hoveredRoom)) {
-        canvas.style.cursor = 'nwse-resize';
-      } else {
-        canvas.style.cursor = 'move';
-      }
     } else {
-      const hoveringComponent = findClickedComponent({ components, x, y, gridSize });
-      canvas.style.cursor = hoveringComponent ? 'move' : 'default';
+      onMouseMove(e);
     }
 
-    onMouseMove(e);
+    // Update cursor based on what's being hovered
+    if (selectedRoom) {
+      const roomX = selectedRoom.x * gridSize;
+      const roomY = selectedRoom.y * gridSize;
+      const roomWidth = selectedRoom.width * gridSize;
+      const roomLength = selectedRoom.length * gridSize;
+      
+      if (x >= roomX && x <= roomX + roomWidth && 
+          y >= roomY && y <= roomY + roomLength) {
+        canvas.style.cursor = 'move';
+      } else {
+        canvas.style.cursor = 'default';
+      }
+    }
   };
 
   return (

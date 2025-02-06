@@ -21,13 +21,23 @@ export const DragDropHandler = ({ position, scale, onComponentAdd }: DragDropHan
       try {
         const component = JSON.parse(componentData) as Component;
         const rect = (e.target as HTMLElement).getBoundingClientRect();
-        const x = (e.clientX - rect.left - position.x) / scale;
-        const y = (e.clientY - rect.top - position.y) / scale;
         
-        component.x = Math.round(x / 20) * 20;
-        component.y = Math.round(y / 20) * 20;
+        // Calculate position relative to canvas and grid
+        const x = Math.round((e.clientX - rect.left - position.x) / (20 * scale)) * 20;
+        const y = Math.round((e.clientY - rect.top - position.y) / (20 * scale)) * 20;
         
-        onComponentAdd(component);
+        const newComponent = {
+          ...component,
+          x,
+          y,
+        };
+        
+        onComponentAdd(newComponent);
+        
+        toast({
+          title: "Component Added",
+          description: `${component.type} has been added to the canvas`,
+        });
       } catch (error) {
         console.error("Error adding component:", error);
         toast({
@@ -43,15 +53,12 @@ export const DragDropHandler = ({ position, scale, onComponentAdd }: DragDropHan
     <div 
       className="absolute inset-0 pointer-events-auto"
       onDragOver={handleDragOver}
+      onDrop={handleDrop}
       onDragEnter={(e) => {
         e.currentTarget.classList.add('bg-blue-100/20');
       }}
       onDragLeave={(e) => {
         e.currentTarget.classList.remove('bg-blue-100/20');
-      }}
-      onDrop={(e) => {
-        e.currentTarget.classList.remove('bg-blue-100/20');
-        handleDrop(e);
       }}
     >
       <div className="absolute inset-0 grid grid-cols-[repeat(auto-fill,20px)] grid-rows-[repeat(auto-fill,20px)] opacity-10 pointer-events-none">
