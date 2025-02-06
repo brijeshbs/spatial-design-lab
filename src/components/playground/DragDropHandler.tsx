@@ -51,7 +51,11 @@ export const DragDropHandler = ({ position, scale, onComponentAdd }: DragDropHan
 
   return (
     <div 
-      className="absolute inset-0 pointer-events-auto"
+      className="absolute inset-0 w-full h-full pointer-events-auto z-10"
+      style={{
+        transform: `scale(${scale}) translate(${position.x}px, ${position.y}px)`,
+        transformOrigin: "top left",
+      }}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       onDragEnter={(e) => {
