@@ -10,44 +10,49 @@ export const usePlotState = () => {
 
   const generateStructuralComponents = (width: number, length: number) => {
     const newComponents: Component[] = [];
+    const wallThickness = 0.5;
     
     // Add walls
+    // Top wall
     newComponents.push({
       id: 'wall-top',
       type: 'Wall',
       width: width,
-      length: 0.5,
+      length: wallThickness,
       x: 0,
       y: 0,
       rotation: 0
     });
     
+    // Bottom wall
     newComponents.push({
       id: 'wall-bottom',
       type: 'Wall',
       width: width,
-      length: 0.5,
+      length: wallThickness,
       x: 0,
-      y: length - 0.5,
+      y: length - wallThickness,
       rotation: 0
     });
     
+    // Left wall
     newComponents.push({
       id: 'wall-left',
       type: 'Wall',
-      width: 0.5,
+      width: wallThickness,
       length: length,
       x: 0,
       y: 0,
       rotation: 0
     });
     
+    // Right wall
     newComponents.push({
       id: 'wall-right',
       type: 'Wall',
-      width: 0.5,
+      width: wallThickness,
       length: length,
-      x: width - 0.5,
+      x: width - wallThickness,
       y: 0,
       rotation: 0
     });
@@ -57,40 +62,63 @@ export const usePlotState = () => {
       id: 'main-door',
       type: 'Door',
       width: 3,
-      length: 0.5,
+      length: wallThickness,
       x: width - 4,
-      y: length - 0.5,
+      y: length - wallThickness,
       rotation: 0
     });
 
-    // Add windows
+    // Add windows based on the layout in the image
+    // Top wall windows
     newComponents.push({
-      id: 'window-top',
+      id: 'window-top-1',
       type: 'Window',
       width: 3,
-      length: 0.5,
-      x: (width / 2) - 1.5,
+      length: wallThickness,
+      x: width / 4,
       y: 0,
       rotation: 0
     });
 
     newComponents.push({
-      id: 'window-left',
+      id: 'window-top-2',
       type: 'Window',
       width: 3,
-      length: 0.5,
+      length: wallThickness,
+      x: (width * 3) / 4,
+      y: 0,
+      rotation: 0
+    });
+
+    // Left wall windows
+    newComponents.push({
+      id: 'window-left-1',
+      type: 'Window',
+      width: 3,
+      length: wallThickness,
       x: 0,
-      y: (length / 2) - 1.5,
+      y: length / 4,
       rotation: 90
     });
 
     newComponents.push({
+      id: 'window-left-2',
+      type: 'Window',
+      width: 3,
+      length: wallThickness,
+      x: 0,
+      y: (length * 3) / 4,
+      rotation: 90
+    });
+
+    // Right wall windows
+    newComponents.push({
       id: 'window-right',
       type: 'Window',
       width: 3,
-      length: 0.5,
-      x: width - 0.5,
-      y: (length / 2) - 1.5,
+      length: wallThickness,
+      x: width - wallThickness,
+      y: length / 2,
       rotation: 90
     });
 

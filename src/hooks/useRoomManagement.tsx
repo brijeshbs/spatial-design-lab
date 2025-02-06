@@ -15,14 +15,13 @@ export const useRoomManagement = (dimensions: { width: number; length: number })
     const constrainedX = Math.max(0, Math.min(newX, dimensions.width - room.width));
     const constrainedY = Math.max(0, Math.min(newY, dimensions.length - room.length));
 
-    if (newX !== constrainedX || newY !== constrainedY) {
-      toast({
-        title: "Room Position Constrained",
-        description: "Rooms must stay within the plot boundaries",
-      });
-    }
-
-    return { ...room, x: constrainedX, y: constrainedY };
+    setRooms(prevRooms =>
+      prevRooms.map(r =>
+        r.id === room.id
+          ? { ...r, x: constrainedX, y: constrainedY }
+          : r
+      )
+    );
   };
 
   const handleRoomResize = (
@@ -63,13 +62,19 @@ export const useRoomManagement = (dimensions: { width: number; length: number })
         break;
     }
 
-    return { ...room, width: newWidth, length: newLength, x: newX, y: newY };
+    setRooms(prevRooms =>
+      prevRooms.map(r =>
+        r.id === room.id
+          ? { ...r, width: newWidth, length: newLength, x: newX, y: newY }
+          : r
+      )
+    );
   };
 
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left - 50; // Adjust for canvas translation
+    const x = e.clientX - rect.left - 50;
     const y = e.clientY - rect.top - 50;
     const gridSize = 20;
 
@@ -119,7 +124,7 @@ export const useRoomManagement = (dimensions: { width: number; length: number })
     } else {
       setSelectedRoom(null);
     }
-  }, [rooms, selectedRoom, setSelectedRoom]);
+  }, [rooms, selectedRoom]);
 
   const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
@@ -131,21 +136,13 @@ export const useRoomManagement = (dimensions: { width: number; length: number })
     if (isResizing && resizeHandle && selectedRoom) {
       const deltaX = x - resizeHandle.startX;
       const deltaY = y - resizeHandle.startY;
-      const updatedRoom = handleRoomResize(selectedRoom, deltaX, deltaY, resizeHandle.edge, gridSize);
-      
-      setRooms(rooms.map(room => 
-        room.id === updatedRoom.id ? updatedRoom : room
-      ));
+      handleRoomResize(selectedRoom, deltaX, deltaY, resizeHandle.edge, gridSize);
     } else if (isDragging && selectedRoom) {
       const newX = Math.floor((x - dragOffset.x) / gridSize);
       const newY = Math.floor((y - dragOffset.y) / gridSize);
-      const updatedRoom = handleRoomMove(selectedRoom, newX, newY);
-      
-      setRooms(rooms.map(room => 
-        room.id === updatedRoom.id ? updatedRoom : room
-      ));
+      handleRoomMove(selectedRoom, newX, newY);
     }
-  }, [isDragging, isResizing, selectedRoom, resizeHandle, dragOffset, rooms, dimensions]);
+  }, [isDragging, isResizing, selectedRoom, resizeHandle, dragOffset]);
 
   const handleCanvasMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -154,9 +151,11 @@ export const useRoomManagement = (dimensions: { width: number; length: number })
   }, []);
 
   const handleRoomUpdate = (updatedRoom: Room) => {
-    setRooms(rooms.map(room => 
-      room.id === updatedRoom.id ? updatedRoom : room
-    ));
+    setRooms(prevRooms =>
+      prevRooms.map(room => 
+        room.id === updatedRoom.id ? updatedRoom : room
+      )
+    );
   };
 
   return {
