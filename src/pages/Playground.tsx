@@ -29,7 +29,6 @@ const Playground = () => {
   const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
     setShowPlot(true);
 
-    // Define room sizes based on the image layout
     const roomSizes: { [key: string]: { width: number; length: number } } = {
       "Master Bedroom": { width: 16, length: 11 },
       "Second Bedroom": { width: 8, length: 11 },
@@ -38,13 +37,11 @@ const Playground = () => {
       "Living Room": { width: 12, length: 15 }
     };
 
-    // Generate rooms with proper positioning
     const generatedRooms = roomTypes.map((type, index) => {
       const size = roomSizes[type] || { width: 8, length: 11 };
       let x = 0;
       let y = 0;
 
-      // Position rooms based on type (matching the image layout)
       switch (type) {
         case "Master Bedroom":
           x = 1;

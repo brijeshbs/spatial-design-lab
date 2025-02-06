@@ -1,4 +1,4 @@
-import { Room, Component } from "../types";
+import { Room } from "../types";
 import { RoomCanvas } from "../RoomCanvas";
 
 interface TransformableCanvasProps {
@@ -13,8 +13,6 @@ interface TransformableCanvasProps {
   onMouseUp: () => void;
   onMouseLeave: () => void;
   showPlot: boolean;
-  components: Component[];
-  onComponentMove: (component: Component, newX: number, newY: number) => void;
 }
 
 export const TransformableCanvas = ({
@@ -29,8 +27,6 @@ export const TransformableCanvas = ({
   onMouseUp,
   onMouseLeave,
   showPlot,
-  components,
-  onComponentMove,
 }: TransformableCanvasProps) => {
   return (
     <div 
@@ -50,8 +46,6 @@ export const TransformableCanvas = ({
         onMouseLeave={onMouseLeave}
         rotation={rotation}
         showPlot={showPlot}
-        components={components}
-        onComponentMove={onComponentMove}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import { LeftSidebar } from "@/components/playground/LeftSidebar";
 import { RightSidebar } from "@/components/playground/RightSidebar";
 import { CanvasArea } from "@/components/playground/CanvasArea";
-import { Room, Component } from "@/components/playground/types";
+import { Room } from "@/components/playground/types";
 
 interface PlaygroundLayoutProps {
   showLeftSidebar: boolean;
@@ -16,8 +16,6 @@ interface PlaygroundLayoutProps {
   onMouseUp: () => void;
   onMouseLeave: () => void;
   showPlot: boolean;
-  onComponentAdd: (component: Component) => void;
-  components: Component[];
   onGenerateLayout: ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => void;
   onUpdateRoom: (room: Room) => void;
 }
@@ -35,8 +33,6 @@ export const PlaygroundLayout = ({
   onMouseUp,
   onMouseLeave,
   showPlot,
-  onComponentAdd,
-  components,
   onGenerateLayout,
   onUpdateRoom,
 }: PlaygroundLayoutProps) => {
@@ -51,15 +47,12 @@ export const PlaygroundLayout = ({
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseLeave}
         showPlot={showPlot}
-        onComponentAdd={onComponentAdd}
-        components={components}
       />
 
       <LeftSidebar
         showLeftSidebar={showLeftSidebar}
         setShowLeftSidebar={setShowLeftSidebar}
         onGenerate={onGenerateLayout}
-        onComponentSelect={onComponentAdd}
       />
 
       <RightSidebar

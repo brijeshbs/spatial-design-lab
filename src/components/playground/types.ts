@@ -7,16 +7,6 @@ export interface Room {
   y: number;
 }
 
-export interface Component {
-  id: string;
-  type: string;
-  width: number;
-  length: number;
-  x: number;
-  y: number;
-  rotation: number;
-}
-
 export interface Position {
   x: number;
   y: number;
