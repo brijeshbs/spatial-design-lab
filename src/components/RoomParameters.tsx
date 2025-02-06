@@ -14,7 +14,7 @@ interface RoomParametersProps {
 }
 
 export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
-  const [dimensions, setDimensions] = useState({ width: 100, length: 100 });
+  const [dimensions, setDimensions] = useState({ width: 40, length: 60 });
   const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>(["Living Room"]);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
