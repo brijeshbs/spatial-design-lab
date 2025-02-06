@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { useRoomManagement } from "@/hooks/useRoomManagement";
-import { usePlotState } from "@/hooks/usePlotState";
 import { PlaygroundLayout } from "@/components/playground/layout/PlaygroundLayout";
+import { Component, Room } from "@/components/playground/types";
+import { usePlotState } from "@/hooks/usePlotState";
+import { useRoomManagement } from "@/hooks/useRoomManagement";
 
 const Playground = () => {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
-
+  
   const {
     dimensions,
     showPlot,
@@ -20,12 +21,13 @@ const Playground = () => {
 
   const {
     rooms,
+    setRooms,
     selectedRoom,
+    setSelectedRoom,
     handleCanvasMouseDown,
     handleCanvasMouseMove,
     handleCanvasMouseUp,
     handleRoomUpdate,
-    setRooms,
   } = useRoomManagement(dimensions);
 
   const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
