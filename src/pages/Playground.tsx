@@ -9,15 +9,6 @@ const Playground = () => {
   const [showRightSidebar, setShowRightSidebar] = useState(true);
 
   const {
-    rooms,
-    selectedRoom,
-    handleCanvasMouseDown,
-    handleCanvasMouseMove,
-    handleCanvasMouseUp,
-    handleRoomUpdate,
-  } = useRoomManagement(dimensions);
-
-  const {
     dimensions,
     showPlot,
     components,
@@ -27,6 +18,15 @@ const Playground = () => {
     setShowPlot,
     setComponents,
   } = usePlotState();
+
+  const {
+    rooms,
+    selectedRoom,
+    handleCanvasMouseDown,
+    handleCanvasMouseMove,
+    handleCanvasMouseUp,
+    handleRoomUpdate,
+  } = useRoomManagement(dimensions);
 
   const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
     const structuralComponents = generateStructuralComponents(width, length);
