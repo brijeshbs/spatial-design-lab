@@ -9,7 +9,6 @@ interface DragDropHandlerProps {
 
 export const DragDropHandler = ({ position, scale, onComponentAdd }: DragDropHandlerProps) => {
   const handleDragOver = (e: React.DragEvent) => {
-    // Only handle component drag events
     const componentData = e.dataTransfer.types.includes('component');
     if (componentData) {
       e.preventDefault();
@@ -27,15 +26,10 @@ export const DragDropHandler = ({ position, scale, onComponentAdd }: DragDropHan
         const x = (e.clientX - rect.left - position.x) / scale;
         const y = (e.clientY - rect.top - position.y) / scale;
         
-        // Snap to grid with visual feedback
         component.x = Math.round(x / 20) * 20;
         component.y = Math.round(y / 20) * 20;
         
         onComponentAdd(component);
-        toast({
-          title: "Component Added",
-          description: `${component.type} has been placed at position (${component.x}, ${component.y})`,
-        });
       } catch (error) {
         console.error("Error adding component:", error);
         toast({
@@ -52,7 +46,7 @@ export const DragDropHandler = ({ position, scale, onComponentAdd }: DragDropHan
       className="absolute inset-0 pointer-events-none"
       onDragOver={(e) => {
         e.currentTarget.style.pointerEvents = 'auto';
-        e.currentTarget.classList.add('bg-blue-100/20'); // Visual feedback during drag
+        e.currentTarget.classList.add('bg-blue-100/20');
         handleDragOver(e);
       }}
       onDragEnter={(e) => {

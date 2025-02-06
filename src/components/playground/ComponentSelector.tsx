@@ -17,6 +17,8 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
 
   const handleDragStart = (e: React.DragEvent, type: string) => {
     const componentSpec = COMPONENTS[type as keyof typeof COMPONENTS];
+    if (!componentSpec) return;
+
     const newComponent: Component = {
       id: Math.random().toString(36).substr(2, 9),
       type,
@@ -40,24 +42,17 @@ export const ComponentSelector = ({ onSelect }: ComponentSelectorProps) => {
       return;
     }
 
-    const randomX = Math.floor(Math.random() * 400);
-    const randomY = Math.floor(Math.random() * 400);
-
     const newComponent: Component = {
       id: Math.random().toString(36).substr(2, 9),
       type,
       width: componentSpec.width,
       length: componentSpec.length,
-      x: randomX,
-      y: randomY,
+      x: Math.floor(Math.random() * 400),
+      y: Math.floor(Math.random() * 400),
       rotation: 0,
     };
 
     onSelect(newComponent);
-    toast({
-      title: "Component Added",
-      description: `${type} has been placed on the canvas`,
-    });
   };
 
   return (
