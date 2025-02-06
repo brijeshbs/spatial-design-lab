@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { Room, ResizeHandle } from "@/components/playground/types";
+import { handleRoomMove, handleRoomResize } from "@/utils/roomInteractionUtils";
 import { toast } from "@/components/ui/use-toast";
 
 export const useRoomManagement = (dimensions: { width: number; length: number }) => {
@@ -9,67 +10,6 @@ export const useRoomManagement = (dimensions: { width: number; length: number })
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [resizeHandle, setResizeHandle] = useState<ResizeHandle | null>(null);
-
-  const handleRoomMove = (room: Room, newX: number, newY: number) => {
-    // Ensure room stays within plot boundaries
-    const constrainedX = Math.max(0, Math.min(newX, dimensions.width - room.width));
-    const constrainedY = Math.max(0, Math.min(newY, dimensions.length - room.length));
-
-    setRooms(prevRooms =>
-      prevRooms.map(r =>
-        r.id === room.id
-          ? { ...r, x: constrainedX, y: constrainedY }
-          : r
-      )
-    );
-  };
-
-  const handleRoomResize = (
-    room: Room,
-    deltaX: number,
-    deltaY: number,
-    edge: string,
-    gridSize: number
-  ) => {
-    const minSize = 5;
-    let newWidth = room.width;
-    let newLength = room.length;
-    let newX = room.x;
-    let newY = room.y;
-
-    switch (edge) {
-      case 'right':
-        newWidth = Math.max(minSize, Math.min(
-          room.width + Math.round(deltaX / gridSize),
-          dimensions.width - room.x
-        ));
-        break;
-      case 'bottom':
-        newLength = Math.max(minSize, Math.min(
-          room.length + Math.round(deltaY / gridSize),
-          dimensions.length - room.y
-        ));
-        break;
-      case 'bottomRight':
-        newWidth = Math.max(minSize, Math.min(
-          room.width + Math.round(deltaX / gridSize),
-          dimensions.width - room.x
-        ));
-        newLength = Math.max(minSize, Math.min(
-          room.length + Math.round(deltaY / gridSize),
-          dimensions.length - room.y
-        ));
-        break;
-    }
-
-    setRooms(prevRooms =>
-      prevRooms.map(r =>
-        r.id === room.id
-          ? { ...r, width: newWidth, length: newLength, x: newX, y: newY }
-          : r
-      )
-    );
-  };
 
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
@@ -136,13 +76,25 @@ export const useRoomManagement = (dimensions: { width: number; length: number })
     if (isResizing && resizeHandle && selectedRoom) {
       const deltaX = x - resizeHandle.startX;
       const deltaY = y - resizeHandle.startY;
-      handleRoomResize(selectedRoom, deltaX, deltaY, resizeHandle.edge, gridSize);
+      const updatedRoom = handleRoomResize(selectedRoom, deltaX, deltaY, resizeHandle.edge, gridSize, dimensions);
+      
+      setRooms(prevRooms =>
+        prevRooms.map(room =>
+          room.id === selectedRoom.id ? updatedRoom : room
+        )
+      );
     } else if (isDragging && selectedRoom) {
       const newX = Math.floor((x - dragOffset.x) / gridSize);
       const newY = Math.floor((y - dragOffset.y) / gridSize);
-      handleRoomMove(selectedRoom, newX, newY);
+      const updatedRoom = handleRoomMove(selectedRoom, newX, newY, dimensions);
+      
+      setRooms(prevRooms =>
+        prevRooms.map(room =>
+          room.id === selectedRoom.id ? updatedRoom : room
+        )
+      );
     }
-  }, [isDragging, isResizing, selectedRoom, resizeHandle, dragOffset]);
+  }, [isDragging, isResizing, selectedRoom, resizeHandle, dragOffset, dimensions]);
 
   const handleCanvasMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -150,13 +102,13 @@ export const useRoomManagement = (dimensions: { width: number; length: number })
     setResizeHandle(null);
   }, []);
 
-  const handleRoomUpdate = (updatedRoom: Room) => {
+  const handleRoomUpdate = useCallback((updatedRoom: Room) => {
     setRooms(prevRooms =>
       prevRooms.map(room => 
         room.id === updatedRoom.id ? updatedRoom : room
       )
     );
-  };
+  }, []);
 
   return {
     rooms,

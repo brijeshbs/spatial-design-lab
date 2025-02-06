@@ -1,7 +1,8 @@
 import { useRef, useEffect } from "react";
 import { Room, Component } from "./types";
-import { drawPlotBorder, drawPlotDimensions, drawRoomHandles } from "@/utils/canvasDrawing";
-import { drawRoom, drawRoomWindows, drawRoomDoors, drawRoomLabel } from "@/utils/canvasRoomUtils";
+import { drawPlotBorder, drawPlotDimensions } from "@/utils/canvasDrawing";
+import { RoomDrawer } from "./canvas/RoomDrawer";
+import { RoomHandles } from "./canvas/RoomHandles";
 import { ComponentDrawer } from "./canvas/ComponentDrawer";
 import { findClickedComponent } from "./canvas/ComponentInteraction";
 
@@ -61,13 +62,10 @@ export const RoomCanvas = ({
     // Draw rooms
     rooms.forEach((room) => {
       const isSelected = selectedRoom?.id === room.id;
-      drawRoom(ctx, room, isSelected, gridSize, wallThickness);
-      drawRoomWindows(ctx, room, gridSize);
-      drawRoomDoors(ctx, room, dimensions, gridSize);
-      drawRoomLabel(ctx, room, gridSize);
-
+      RoomDrawer({ ctx, room, isSelected, gridSize, wallThickness });
+      
       if (isSelected) {
-        drawRoomHandles(ctx, room, gridSize);
+        RoomHandles({ ctx, room, gridSize });
       }
     });
 
