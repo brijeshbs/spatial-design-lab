@@ -26,6 +26,36 @@ const Playground = () => {
     handleRoomUpdate,
   } = useRoomManagement(dimensions);
 
+  const isRoomOverlapping = (room: Room, existingRooms: Room[]) => {
+    return existingRooms.some(existingRoom => {
+      const overlapX = (room.x < existingRoom.x + existingRoom.width) &&
+                      (room.x + room.width > existingRoom.x);
+      const overlapY = (room.y < existingRoom.y + existingRoom.length) &&
+                      (room.y + room.length > existingRoom.y);
+      return overlapX && overlapY;
+    });
+  };
+
+  const findValidPosition = (
+    room: Room, 
+    existingRooms: Room[], 
+    maxWidth: number, 
+    maxLength: number,
+    attempts = 100
+  ): Room | null => {
+    for (let i = 0; i < attempts; i++) {
+      const x = Math.floor(Math.random() * (maxWidth - room.width));
+      const y = Math.floor(Math.random() * (maxLength - room.length));
+      
+      const testRoom = { ...room, x, y };
+      
+      if (!isRoomOverlapping(testRoom, existingRooms)) {
+        return testRoom;
+      }
+    }
+    return null;
+  };
+
   const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
     setShowPlot(true);
 
@@ -37,49 +67,43 @@ const Playground = () => {
       "Living Room": { width: 12, length: 15 }
     };
 
-    const generatedRooms = roomTypes.map((type, index) => {
+    const generatedRooms: Room[] = [];
+
+    for (const type of roomTypes) {
       const size = roomSizes[type] || { width: 8, length: 11 };
-      let x = 0;
-      let y = 0;
-
-      switch (type) {
-        case "Master Bedroom":
-          x = 1;
-          y = 1;
-          break;
-        case "Second Bedroom":
-          x = 18;
-          y = 1;
-          break;
-        case "Children's Room":
-          x = 1;
-          y = 15;
-          break;
-        case "Bathroom":
-          x = 10;
-          y = 15;
-          break;
-        case "Living Room":
-          x = 1;
-          y = 28;
-          break;
-      }
-
-      return {
-        id: `room-${index}`,
+      
+      // Create initial room with size but no position
+      const room: Room = {
+        id: `room-${generatedRooms.length}`,
         type,
         width: size.width,
         length: size.length,
-        x,
-        y,
+        x: 0,
+        y: 0,
       };
-    });
 
-    setRooms(generatedRooms);
-    toast({
-      title: "Layout Generated",
-      description: "Floor plan has been generated with the selected room types",
-    });
+      // Try to find a valid position for the room
+      const validRoom = findValidPosition(room, generatedRooms, width, length);
+
+      if (validRoom) {
+        generatedRooms.push(validRoom);
+      } else {
+        toast({
+          title: "Room Placement Failed",
+          description: `Could not find a valid position for ${type}. Try reducing room sizes or plot dimensions.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (generatedRooms.length === roomTypes.length) {
+      setRooms(generatedRooms);
+      toast({
+        title: "Layout Generated",
+        description: "Floor plan has been generated with non-overlapping rooms",
+      });
+    }
   };
 
   return (
