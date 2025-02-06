@@ -1,11 +1,11 @@
 export const ROOM_TYPES = {
-  "Master Bedroom": { width: 12, length: 10 },
-  "Second Bedroom": { width: 10, length: 8 },
-  "Children's Room": { width: 8, length: 8 },
-  "Living Room": { width: 14, length: 12 },
-  "Kitchen": { width: 10, length: 8 },
-  "Bathroom": { width: 6, length: 5 },
-  "Balcony": { width: 8, length: 4 },
+  "Master Bedroom": { width: 10, length: 8 },
+  "Second Bedroom": { width: 8, length: 7 },
+  "Children's Room": { width: 7, length: 7 },
+  "Living Room": { width: 12, length: 10 },
+  "Kitchen": { width: 8, length: 7 },
+  "Bathroom": { width: 5, length: 4 },
+  "Balcony": { width: 6, length: 3 },
 } as const;
 
 export const ROOM_COLORS = {

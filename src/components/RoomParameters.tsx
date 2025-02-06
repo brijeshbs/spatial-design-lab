@@ -5,7 +5,12 @@ import { toast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DimensionInputs } from "./room/DimensionInputs";
 import { RoomSelector } from "./room/RoomSelector";
-import { calculateTotalRoomArea, validateRoomDimensions, handleLivingRoomModification } from "@/utils/roomUtils";
+import { 
+  calculateTotalRoomArea, 
+  validateRoomDimensions, 
+  handleLivingRoomModification,
+  validateTotalRoomArea 
+} from "@/utils/roomUtils";
 
 interface RoomParametersProps {
   onGenerate: (dimensions: { width: number; length: number; roomTypes: string[] }) => void;
@@ -24,16 +29,12 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
     }
 
     const newRoomTypes = [...selectedRoomTypes, roomType];
-    setSelectedRoomTypes(newRoomTypes);
     
-    const totalRoomArea = calculateTotalRoomArea(newRoomTypes);
-    if (totalRoomArea > dimensions.width * dimensions.length) {
-      toast({
-        title: "Warning",
-        description: "Total room area exceeds house dimensions. Some rooms may not fit.",
-        variant: "destructive",
-      });
+    if (!validateTotalRoomArea(newRoomTypes, dimensions.width, dimensions.length)) {
+      return;
     }
+    
+    setSelectedRoomTypes(newRoomTypes);
   };
 
   const handleRemoveRoom = (index: number) => {
@@ -56,6 +57,11 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
     
     if (selectedRoomTypes.length === 0) {
       setError("Please select at least one room type");
+      return;
+    }
+
+    if (!validateTotalRoomArea(selectedRoomTypes, dimensions.width, dimensions.length)) {
+      setError("Total room area exceeds plot dimensions");
       return;
     }
 
