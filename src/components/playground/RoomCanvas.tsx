@@ -36,7 +36,6 @@ export const RoomCanvas = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size to match window
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
@@ -52,7 +51,6 @@ export const RoomCanvas = ({
       drawPlotDimensions(ctx, dimensions, gridSize);
     }
 
-    // Draw rooms
     rooms.forEach((room) => {
       const isSelected = selectedRoom?.id === room.id;
       RoomDrawer({ ctx, room, isSelected, gridSize, wallThickness });
@@ -65,13 +63,27 @@ export const RoomCanvas = ({
     ctx.restore();
   }, [rooms, selectedRoom, dimensions, rotation, showPlot]);
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - 50;
+    const y = e.clientY - rect.top - 50;
+    onMouseDown({ ...e, clientX: x, clientY: y } as React.MouseEvent<HTMLCanvasElement>);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - 50;
+    const y = e.clientY - rect.top - 50;
+    onMouseMove({ ...e, clientX: x, clientY: y } as React.MouseEvent<HTMLCanvasElement>);
+  };
+
   return (
     <canvas
       ref={canvasRef}
       className="absolute inset-0"
       style={{ touchAction: 'none' }}
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
     />

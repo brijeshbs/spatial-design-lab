@@ -7,51 +7,40 @@ interface RoomHandlesProps {
 }
 
 export const RoomHandles = ({ ctx, room, gridSize }: RoomHandlesProps) => {
-  const handleSize = 8;
+  const handleSize = 10;
   ctx.fillStyle = "#3498DB";
   
   // Draw corner handles
   const corners = [
-    [0, 0], // top-left
-    [room.width * gridSize, 0], // top-right
-    [0, room.length * gridSize], // bottom-left
-    [room.width * gridSize, room.length * gridSize], // bottom-right
+    { x: 0, y: 0, cursor: 'nw-resize' }, // top-left
+    { x: room.width * gridSize, y: 0, cursor: 'ne-resize' }, // top-right
+    { x: 0, y: room.length * gridSize, cursor: 'sw-resize' }, // bottom-left
+    { x: room.width * gridSize, y: room.length * gridSize, cursor: 'se-resize' }, // bottom-right
   ];
 
-  corners.forEach(([hx, hy]) => {
+  corners.forEach(({ x, y }) => {
     ctx.fillRect(
-      room.x * gridSize + hx - handleSize/2,
-      room.y * gridSize + hy - handleSize/2,
+      room.x * gridSize + x - handleSize/2,
+      room.y * gridSize + y - handleSize/2,
       handleSize,
       handleSize
     );
   });
 
-  // Draw resize arrows
-  const arrowSize = 12;
-  ctx.strokeStyle = "#3498DB";
-  ctx.lineWidth = 2;
+  // Draw edge handles
+  const edges = [
+    { x: room.width * gridSize / 2, y: 0, cursor: 'n-resize' }, // top
+    { x: room.width * gridSize, y: room.length * gridSize / 2, cursor: 'e-resize' }, // right
+    { x: room.width * gridSize / 2, y: room.length * gridSize, cursor: 's-resize' }, // bottom
+    { x: 0, y: room.length * gridSize / 2, cursor: 'w-resize' }, // left
+  ];
 
-  // Bottom-right resize arrow
-  const x = room.x * gridSize + room.width * gridSize;
-  const y = room.y * gridSize + room.length * gridSize;
-  
-  ctx.beginPath();
-  // Horizontal arrow
-  ctx.moveTo(x - arrowSize, y);
-  ctx.lineTo(x, y);
-  ctx.moveTo(x, y);
-  ctx.lineTo(x - 4, y - 4);
-  ctx.moveTo(x, y);
-  ctx.lineTo(x - 4, y + 4);
-  
-  // Vertical arrow
-  ctx.moveTo(x, y - arrowSize);
-  ctx.lineTo(x, y);
-  ctx.moveTo(x, y);
-  ctx.lineTo(x - 4, y - 4);
-  ctx.moveTo(x, y);
-  ctx.lineTo(x + 4, y - 4);
-  
-  ctx.stroke();
+  edges.forEach(({ x, y }) => {
+    ctx.fillRect(
+      room.x * gridSize + x - handleSize/2,
+      room.y * gridSize + y - handleSize/2,
+      handleSize,
+      handleSize
+    );
+  });
 };
