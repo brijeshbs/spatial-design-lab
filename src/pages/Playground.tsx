@@ -25,12 +25,26 @@ const Playground = () => {
     handleCanvasMouseMove,
     handleCanvasMouseUp,
     handleRoomUpdate,
+    setRooms,
   } = useRoomManagement(dimensions);
 
   const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
+    // Generate structural components
     const structuralComponents = generateStructuralComponents(width, length);
     setComponents(structuralComponents);
     setShowPlot(true);
+
+    // Generate rooms based on room types
+    const generatedRooms = roomTypes.map((type, index) => ({
+      id: `room-${index}`,
+      type,
+      width: Math.min(15, Math.floor(width / 2)),  // Default room width
+      length: Math.min(15, Math.floor(length / 2)), // Default room length
+      x: index * 2, // Offset each room slightly
+      y: index * 2,
+    }));
+
+    setRooms(generatedRooms);
   };
 
   return (
