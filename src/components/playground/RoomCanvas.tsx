@@ -3,6 +3,7 @@ import { Room } from "./types";
 import { drawPlotBorder, drawPlotDimensions } from "@/utils/canvasDrawing";
 import { RoomDrawer } from "./canvas/RoomDrawer";
 import { RoomHandles } from "./canvas/RoomHandles";
+import { getResizeEdge } from "@/utils/roomInteractionUtils";
 
 interface RoomCanvasProps {
   rooms: Room[];
@@ -63,18 +64,71 @@ export const RoomCanvas = ({
     ctx.restore();
   }, [rooms, selectedRoom, dimensions, rotation, showPlot]);
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !selectedRoom) {
+      e.currentTarget.style.cursor = 'default';
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left - 50;
+    const y = e.clientY - rect.top - 50;
+    const gridSize = 20;
+    const handleSize = 10;
+
+    // Check if mouse is over the selected room
+    const roomX = selectedRoom.x * gridSize;
+    const roomY = selectedRoom.y * gridSize;
+    const roomWidth = selectedRoom.width * gridSize;
+    const roomLength = selectedRoom.length * gridSize;
+
+    const isOverRoom = x >= roomX && x <= roomX + roomWidth && 
+                      y >= roomY && y <= roomY + roomLength;
+
+    if (isOverRoom) {
+      const edge = getResizeEdge(x, y, selectedRoom, gridSize, handleSize);
+      
+      if (edge) {
+        switch (edge) {
+          case 'top':
+          case 'bottom':
+            e.currentTarget.style.cursor = 'ns-resize';
+            break;
+          case 'left':
+          case 'right':
+            e.currentTarget.style.cursor = 'ew-resize';
+            break;
+          case 'topLeft':
+          case 'bottomRight':
+            e.currentTarget.style.cursor = 'nwse-resize';
+            break;
+          case 'topRight':
+          case 'bottomLeft':
+            e.currentTarget.style.cursor = 'nesw-resize';
+            break;
+        }
+      } else {
+        e.currentTarget.style.cursor = 'move';
+      }
+    } else {
+      e.currentTarget.style.cursor = 'default';
+    }
+
+    const adjustedEvent = { 
+      ...e, 
+      clientX: x, 
+      clientY: y 
+    } as React.MouseEvent<HTMLCanvasElement>;
+    
+    onMouseMove(adjustedEvent);
+  };
+
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left - 50;
     const y = e.clientY - rect.top - 50;
     onMouseDown({ ...e, clientX: x, clientY: y } as React.MouseEvent<HTMLCanvasElement>);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - 50;
-    const y = e.clientY - rect.top - 50;
-    onMouseMove({ ...e, clientX: x, clientY: y } as React.MouseEvent<HTMLCanvasElement>);
   };
 
   return (

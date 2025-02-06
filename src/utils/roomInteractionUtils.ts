@@ -1,4 +1,4 @@
-import { Room, ResizeHandle } from "@/components/playground/types";
+import { Room } from "@/components/playground/types";
 import { toast } from "@/components/ui/use-toast";
 
 export const handleRoomMove = (
@@ -54,4 +54,47 @@ export const handleRoomResize = (
   }
 
   return { ...room, width: newWidth, length: newLength, x: newX, y: newY };
+};
+
+export const getResizeEdge = (
+  x: number,
+  y: number,
+  room: Room,
+  gridSize: number,
+  handleSize: number
+): string | null => {
+  const roomX = room.x * gridSize;
+  const roomY = room.y * gridSize;
+  const roomWidth = room.width * gridSize;
+  const roomLength = room.length * gridSize;
+
+  // Check corners first (they take precedence)
+  const corners = [
+    { x: roomX, y: roomY, edge: 'topLeft' },
+    { x: roomX + roomWidth, y: roomY, edge: 'topRight' },
+    { x: roomX, y: roomY + roomLength, edge: 'bottomLeft' },
+    { x: roomX + roomWidth, y: roomY + roomLength, edge: 'bottomRight' },
+  ];
+
+  for (const corner of corners) {
+    if (Math.abs(x - corner.x) <= handleSize && Math.abs(y - corner.y) <= handleSize) {
+      return corner.edge;
+    }
+  }
+
+  // Then check edges
+  const edges = [
+    { x: roomX + roomWidth / 2, y: roomY, edge: 'top' },
+    { x: roomX + roomWidth, y: roomY + roomLength / 2, edge: 'right' },
+    { x: roomX + roomWidth / 2, y: roomY + roomLength, edge: 'bottom' },
+    { x: roomX, y: roomY + roomLength / 2, edge: 'left' },
+  ];
+
+  for (const edge of edges) {
+    if (Math.abs(x - edge.x) <= handleSize && Math.abs(y - edge.y) <= handleSize) {
+      return edge.edge;
+    }
+  }
+
+  return null;
 };
