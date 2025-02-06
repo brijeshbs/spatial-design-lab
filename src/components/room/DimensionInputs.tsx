@@ -9,6 +9,17 @@ interface DimensionInputsProps {
 
 export const DimensionInputs = ({ dimensions, setDimensions }: DimensionInputsProps) => {
   const handleDimensionChange = (dimension: 'width' | 'length', value: number) => {
+    // Ensure the value is a valid number
+    if (isNaN(value)) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter a valid number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate minimum dimension
     if (value < 20) {
       toast({
         title: "Invalid Dimension",
@@ -17,6 +28,8 @@ export const DimensionInputs = ({ dimensions, setDimensions }: DimensionInputsPr
       });
       return;
     }
+
+    // Validate maximum dimension
     if (value > 100) {
       toast({
         title: "Invalid Dimension",
@@ -26,6 +39,7 @@ export const DimensionInputs = ({ dimensions, setDimensions }: DimensionInputsPr
       return;
     }
     
+    // Update dimensions
     setDimensions({
       ...dimensions,
       [dimension]: value

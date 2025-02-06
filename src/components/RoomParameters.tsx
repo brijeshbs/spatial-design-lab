@@ -17,10 +17,16 @@ interface RoomParametersProps {
 }
 
 export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
-  const [dimensions, setDimensions] = useState({ width: 30, length: 40 });
+  const [dimensions, setDimensions] = useState({ width: 100, length: 100 }); // Updated initial dimensions
   const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>(["Living Room"]);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+
+  const handleDimensionsChange = (newDimensions: { width: number; length: number }) => {
+    setDimensions(newDimensions);
+    // Clear any previous errors when dimensions change
+    setError(null);
+  };
 
   const handleToggleRoom = (roomType: string) => {
     if (roomType === "Living Room") {
@@ -77,7 +83,10 @@ export const RoomParameters = ({ onGenerate }: RoomParametersProps) => {
     <div className="space-y-4 p-4 border rounded-lg bg-white max-h-[calc(100vh-200px)] flex flex-col">
       <h3 className="text-lg font-semibold">House Parameters</h3>
       
-      <DimensionInputs dimensions={dimensions} setDimensions={setDimensions} />
+      <DimensionInputs 
+        dimensions={dimensions} 
+        setDimensions={handleDimensionsChange}
+      />
       
       <ScrollArea className="flex-1 w-full pr-4">
         <RoomSelector
