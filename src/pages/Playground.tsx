@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useRoomManagement } from "@/hooks/useRoomManagement";
 import { usePlotState } from "@/hooks/usePlotState";
 import { PlaygroundLayout } from "@/components/playground/layout/PlaygroundLayout";
-import type { Room } from "@/components/playground/types";
 
 const Playground = () => {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
