@@ -6,27 +6,13 @@ export const drawPlotBorder = (
   const plotWidth = dimensions.width * gridSize;
   const plotLength = dimensions.length * gridSize;
   
+  // Set border style
   ctx.strokeStyle = "#000000";
   ctx.lineWidth = 2;
+  
+  // Draw plot border as a complete rectangle
   ctx.beginPath();
-  
-  // Draw all four sides of the plot
-  // North border
-  ctx.moveTo(0, 0);
-  ctx.lineTo(plotWidth, 0);
-  
-  // East border
-  ctx.moveTo(plotWidth, 0);
-  ctx.lineTo(plotWidth, plotLength);
-  
-  // South border
-  ctx.moveTo(plotWidth, plotLength);
-  ctx.lineTo(0, plotLength);
-  
-  // West border
-  ctx.moveTo(0, plotLength);
-  ctx.lineTo(0, 0);
-  
+  ctx.rect(0, 0, plotWidth, plotLength);
   ctx.stroke();
 };
 
