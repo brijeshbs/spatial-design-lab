@@ -43,15 +43,20 @@ export const RoomCanvas = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const padding = 100;
     const gridSize = 20;
     const wallThickness = gridSize / 2;
+
+    // Calculate required canvas size based on plot dimensions and padding
+    const requiredWidth = (dimensions.width * gridSize) + (padding * 2);
+    const requiredHeight = (dimensions.length * gridSize) + (padding * 2);
+
+    // Set canvas size to the larger of window size or required size
+    canvas.width = Math.max(window.innerWidth, requiredWidth);
+    canvas.height = Math.max(window.innerHeight, requiredHeight);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Increase the padding to ensure the entire plot is visible
-    const padding = 100; // Increased from 50 to 100
     ctx.save();
     ctx.translate(padding, padding);
     
@@ -98,7 +103,7 @@ export const RoomCanvas = ({
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
-    const padding = 100; // Match the padding from above
+    const padding = 100;
     const x = e.clientX - rect.left - padding;
     const y = e.clientY - rect.top - padding;
     const gridSize = 20;
@@ -120,7 +125,7 @@ export const RoomCanvas = ({
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
-    const padding = 100; // Match the padding from above
+    const padding = 100;
     const x = e.clientX - rect.left - padding;
     const y = e.clientY - rect.top - padding;
     const gridSize = 20;
@@ -133,7 +138,6 @@ export const RoomCanvas = ({
       return;
     }
 
-    // Check for room hover and handle hover
     const hoveredRoom = rooms.find(room => {
       const roomX = room.x * gridSize;
       const roomY = room.y * gridSize;
@@ -183,7 +187,10 @@ export const RoomCanvas = ({
     <canvas
       ref={canvasRef}
       className="absolute inset-0"
-      style={{ touchAction: 'none' }}
+      style={{ 
+        touchAction: 'none',
+        minHeight: `${(dimensions.length * 20) + 200}px`  // Add minHeight to ensure the canvas is tall enough
+      }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={(e) => {
