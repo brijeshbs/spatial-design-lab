@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from "react";
 import { Room, Component } from "./types";
 import { RoomCanvas } from "./RoomCanvas";
@@ -17,6 +18,8 @@ interface CanvasAreaProps {
   showPlot?: boolean;
   components: Component[];
   onComponentAdd?: (component: Component) => void;
+  onComponentMove?: (component: Component, newX: number, newY: number) => void;
+  onComponentResize?: (component: Component, newWidth: number, newLength: number) => void;
 }
 
 export const CanvasArea = ({
@@ -30,6 +33,8 @@ export const CanvasArea = ({
   showPlot = false,
   components,
   onComponentAdd,
+  onComponentMove,
+  onComponentResize,
 }: CanvasAreaProps) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -42,16 +47,6 @@ export const CanvasArea = ({
   useEffect(() => {
     setLocalComponents(components);
   }, [components]);
-
-  const handleComponentMove = useCallback((component: Component, newX: number, newY: number) => {
-    setLocalComponents(prevComponents =>
-      prevComponents.map(c =>
-        c.id === component.id
-          ? { ...c, x: newX, y: newY }
-          : c
-      )
-    );
-  }, []);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -121,7 +116,8 @@ export const CanvasArea = ({
               rotation={rotation}
               showPlot={showPlot}
               components={localComponents}
-              onComponentMove={handleComponentMove}
+              onComponentMove={onComponentMove}
+              onComponentResize={onComponentResize}
             />
           </div>
           <DragDropHandler
