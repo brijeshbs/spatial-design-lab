@@ -1,3 +1,4 @@
+
 import { useRef, useEffect } from "react";
 import { Room, Component } from "./types";
 import { drawPlotBorder, drawPlotDimensions, drawRoomHandles } from "@/utils/canvasDrawing";
@@ -49,8 +50,10 @@ export const RoomCanvas = ({
     const gridSize = 20;
     const wallThickness = gridSize / 2;
     
+    // Increase the padding to ensure the entire plot is visible
+    const padding = 100; // Increased from 50 to 100
     ctx.save();
-    ctx.translate(50, 50);
+    ctx.translate(padding, padding);
     
     if (showPlot) {
       ctx.strokeStyle = "#403E43";
@@ -92,34 +95,12 @@ export const RoomCanvas = ({
     ctx.restore();
   }, [rooms, selectedRoom, dimensions, rotation, showPlot, components]);
 
-  const isOverRoomHandle = (x: number, y: number, room: Room): boolean => {
-    const gridSize = 20;
-    const handleSize = 8;
-    const roomX = room.x * gridSize;
-    const roomY = room.y * gridSize;
-    const roomWidth = room.width * gridSize;
-    const roomLength = room.length * gridSize;
-
-    // Check if cursor is near any edge or corner
-    const nearRight = Math.abs(x - (roomX + roomWidth)) <= handleSize;
-    const nearBottom = Math.abs(y - (roomY + roomLength)) <= handleSize;
-    const nearLeft = Math.abs(x - roomX) <= handleSize;
-    const nearTop = Math.abs(y - roomY) <= handleSize;
-
-    // Return true if near any edge or corner
-    return (nearRight && (nearTop || nearBottom)) || 
-           (nearLeft && (nearTop || nearBottom)) ||
-           (nearRight && y >= roomY && y <= roomY + roomLength) ||
-           (nearLeft && y >= roomY && y <= roomY + roomLength) ||
-           (nearTop && x >= roomX && x <= roomX + roomWidth) ||
-           (nearBottom && x >= roomX && x <= roomX + roomWidth);
-  };
-
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left - 50;
-    const y = e.clientY - rect.top - 50;
+    const padding = 100; // Match the padding from above
+    const x = e.clientX - rect.left - padding;
+    const y = e.clientY - rect.top - padding;
     const gridSize = 20;
 
     const clickedComponent = findClickedComponent({ components, x, y, gridSize });
@@ -139,8 +120,9 @@ export const RoomCanvas = ({
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left - 50;
-    const y = e.clientY - rect.top - 50;
+    const padding = 100; // Match the padding from above
+    const x = e.clientX - rect.left - padding;
+    const y = e.clientY - rect.top - padding;
     const gridSize = 20;
 
     if (draggedComponentRef.current && onComponentMove) {
@@ -174,6 +156,27 @@ export const RoomCanvas = ({
     }
 
     onMouseMove(e);
+  };
+
+  const isOverRoomHandle = (x: number, y: number, room: Room): boolean => {
+    const gridSize = 20;
+    const handleSize = 8;
+    const roomX = room.x * gridSize;
+    const roomY = room.y * gridSize;
+    const roomWidth = room.width * gridSize;
+    const roomLength = room.length * gridSize;
+
+    const nearRight = Math.abs(x - (roomX + roomWidth)) <= handleSize;
+    const nearBottom = Math.abs(y - (roomY + roomLength)) <= handleSize;
+    const nearLeft = Math.abs(x - roomX) <= handleSize;
+    const nearTop = Math.abs(y - roomY) <= handleSize;
+
+    return (nearRight && (nearTop || nearBottom)) || 
+           (nearLeft && (nearTop || nearBottom)) ||
+           (nearRight && y >= roomY && y <= roomY + roomLength) ||
+           (nearLeft && y >= roomY && y <= roomY + roomLength) ||
+           (nearTop && x >= roomX && x <= roomX + roomWidth) ||
+           (nearBottom && x >= roomX && x <= roomX + roomWidth);
   };
 
   return (
