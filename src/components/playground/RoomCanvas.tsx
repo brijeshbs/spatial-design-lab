@@ -1,10 +1,10 @@
-
 import { useRef, useEffect } from "react";
 import { Room, Component } from "./types";
 import { drawPlotBorder, drawPlotDimensions, drawRoomHandles } from "@/utils/canvasDrawing";
 import { drawRoom, drawRoomWindows, drawRoomDoors, drawRoomLabel } from "@/utils/canvasRoomUtils";
 import { ComponentDrawer } from "./canvas/ComponentDrawer";
 import { findClickedComponent } from "./canvas/ComponentInteraction";
+import { toast } from "@/components/ui/use-toast";
 
 interface RoomCanvasProps {
   rooms: Room[];
@@ -34,7 +34,13 @@ export const RoomCanvas = ({
   onComponentMove,
 }: RoomCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const draggedComponentRef = useRef<{ component: Component; offsetX: number; offsetY: number } | null>(null);
+  const draggedComponentRef = useRef<{ 
+    component: Component; 
+    offsetX: number; 
+    offsetY: number;
+    initialX: number;
+    initialY: number;
+  } | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -114,9 +120,20 @@ export const RoomCanvas = ({
       draggedComponentRef.current = {
         component: clickedComponent,
         offsetX: x - clickedComponent.x,
-        offsetY: y - clickedComponent.y
+        offsetY: y - clickedComponent.y,
+        initialX: clickedComponent.x,
+        initialY: clickedComponent.y
       };
       canvas.style.cursor = 'move';
+      
+      // Visual feedback for component selection
+      const ghost = document.createElement('div');
+      ghost.className = 'fixed pointer-events-none border-2 border-blue-500 bg-blue-100/20 transition-all duration-75';
+      ghost.style.width = `${clickedComponent.width * gridSize}px`;
+      ghost.style.height = `${clickedComponent.length * gridSize}px`;
+      ghost.style.transform = `translate(${clickedComponent.x}px, ${clickedComponent.y}px)`;
+      ghost.id = 'component-ghost';
+      document.body.appendChild(ghost);
     } else {
       onMouseDown(e);
     }
@@ -132,9 +149,39 @@ export const RoomCanvas = ({
 
     if (draggedComponentRef.current && onComponentMove) {
       const { component, offsetX, offsetY } = draggedComponentRef.current;
+      
+      // Snap to grid
       const newX = Math.round((x - offsetX) / gridSize) * gridSize;
       const newY = Math.round((y - offsetY) / gridSize) * gridSize;
-      onComponentMove(component, newX, newY);
+
+      // Boundary validation
+      const maxX = (dimensions.width * gridSize) - (component.width * gridSize);
+      const maxY = (dimensions.length * gridSize) - (component.length * gridSize);
+      
+      const constrainedX = Math.max(0, Math.min(newX, maxX));
+      const constrainedY = Math.max(0, Math.min(newY, maxY));
+
+      // Update ghost position
+      const ghost = document.getElementById('component-ghost');
+      if (ghost) {
+        ghost.style.transform = `translate(${constrainedX}px, ${constrainedY}px)`;
+      }
+
+      // Check for collision with other components
+      const hasCollision = components.some(other => {
+        if (other.id === component.id) return false;
+        
+        return !(
+          constrainedX + (component.width * gridSize) <= other.x ||
+          constrainedX >= other.x + (other.width * gridSize) ||
+          constrainedY + (component.length * gridSize) <= other.y ||
+          constrainedY >= other.y + (other.length * gridSize)
+        );
+      });
+
+      if (!hasCollision) {
+        onComponentMove(component, constrainedX, constrainedY);
+      }
       return;
     }
 
@@ -183,24 +230,46 @@ export const RoomCanvas = ({
            (nearBottom && x >= roomX && x <= roomX + roomWidth);
   };
 
+  const cleanupDrag = () => {
+    const ghost = document.getElementById('component-ghost');
+    if (ghost) {
+      ghost.remove();
+    }
+    
+    if (draggedComponentRef.current) {
+      const { component, initialX, initialY } = draggedComponentRef.current;
+      const currentX = component.x;
+      const currentY = component.y;
+      
+      if (currentX !== initialX || currentY !== initialY) {
+        toast({
+          title: "Component Moved",
+          description: `${component.type} moved to (${currentX}, ${currentY})`,
+        });
+      }
+    }
+    
+    draggedComponentRef.current = null;
+  };
+
   return (
     <canvas
       ref={canvasRef}
       className="absolute inset-0"
       style={{ 
         touchAction: 'none',
-        minHeight: `${(dimensions.length * 20) + 200}px`  // Add minHeight to ensure the canvas is tall enough
+        minHeight: `${(dimensions.length * 20) + 200}px`
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={(e) => {
-        draggedComponentRef.current = null;
         e.currentTarget.style.cursor = 'default';
+        cleanupDrag();
         onMouseUp();
       }}
       onMouseLeave={(e) => {
-        draggedComponentRef.current = null;
         e.currentTarget.style.cursor = 'default';
+        cleanupDrag();
         onMouseLeave();
       }}
     />
