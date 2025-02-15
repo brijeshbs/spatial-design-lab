@@ -1,7 +1,6 @@
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -65,14 +64,8 @@ const App = () => {
               path="/projects"
               element={session ? <Projects /> : <Navigate to="/auth" />}
             />
-            <Route
-              path="/playground/:id"
-              element={session ? <Playground /> : <Navigate to="/auth" />}
-            />
-            <Route
-              path="/playground/new"
-              element={session ? <Playground /> : <Navigate to="/auth" />}
-            />
+            <Route path="/playground/:id" element={<Playground />} />
+            <Route path="/playground/new" element={<Playground />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
