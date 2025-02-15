@@ -80,6 +80,10 @@ const Auth = () => {
     }
   };
 
+  const handleSkip = () => {
+    navigate("/playground/new");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-mane-background">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
@@ -208,6 +212,17 @@ const Auth = () => {
             </form>
           </TabsContent>
         </Tabs>
+
+        {/* Skip button for development */}
+        <div className="mt-6 text-center">
+          <Button
+            variant="outline"
+            className="text-mane-secondary hover:text-mane-primary"
+            onClick={handleSkip}
+          >
+            Skip (Development Only)
+          </Button>
+        </div>
       </div>
     </div>
   );
