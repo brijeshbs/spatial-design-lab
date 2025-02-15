@@ -29,6 +29,26 @@ const Playground = () => {
     setComponents(prev => [...prev, component]);
   };
 
+  const handleComponentMove = (component: Component, newX: number, newY: number) => {
+    setComponents(prev => 
+      prev.map(c => 
+        c.id === component.id 
+          ? { ...c, x: newX, y: newY }
+          : c
+      )
+    );
+  };
+
+  const handleComponentResize = (component: Component, newWidth: number, newLength: number) => {
+    setComponents(prev => 
+      prev.map(c => 
+        c.id === component.id 
+          ? { ...c, width: newWidth, length: newLength }
+          : c
+      )
+    );
+  };
+
   const findValidPosition = (
     room: { width: number; length: number },
     existingRooms: Room[],
@@ -104,6 +124,8 @@ const Playground = () => {
         showPlot={showPlot}
         components={components}
         onComponentAdd={handleComponentAdd}
+        onComponentMove={handleComponentMove}
+        onComponentResize={handleComponentResize}
       />
 
       <LeftSidebar

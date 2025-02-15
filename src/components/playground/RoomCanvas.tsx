@@ -1,9 +1,9 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Room, Component } from "./types";
 import { drawPlotBorder, drawPlotDimensions, drawRoomHandles } from "@/utils/canvasDrawing";
 import { drawRoom, drawRoomWindows, drawRoomDoors, drawRoomLabel } from "@/utils/canvasRoomUtils";
 import { ComponentDrawer } from "./canvas/ComponentDrawer";
-import { findClickedComponent } from "./canvas/ComponentInteraction";
+import { findClickedComponent, isValidDropPosition, isOverResizeHandle, calculateNewDimensions } from "./canvas/ComponentInteraction";
 import { toast } from "@/components/ui/use-toast";
 
 interface RoomCanvasProps {
@@ -18,6 +18,7 @@ interface RoomCanvasProps {
   showPlot?: boolean;
   components: Component[];
   onComponentMove?: (component: Component, newX: number, newY: number) => void;
+  onComponentResize?: (component: Component, newWidth: number, newLength: number) => void;
 }
 
 export const RoomCanvas = ({
@@ -32,8 +33,12 @@ export const RoomCanvas = ({
   showPlot = false,
   components,
   onComponentMove,
+  onComponentResize,
 }: RoomCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [selectedComponent, setSelectedComponent] = useState<Component | null>(null);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const draggedComponentRef = useRef<{ 
     component: Component; 
     offsetX: number; 
@@ -104,7 +109,34 @@ export const RoomCanvas = ({
     });
     
     ctx.restore();
-  }, [rooms, selectedRoom, dimensions, rotation, showPlot, components]);
+
+    // Draw resize handles for selected component
+    if (selectedComponent) {
+      ctx.save();
+      ctx.translate(padding, padding);
+      
+      const handleSize = 8;
+      const handles = [
+        { x: selectedComponent.x, y: selectedComponent.y },
+        { x: selectedComponent.x + (selectedComponent.width * gridSize), y: selectedComponent.y },
+        { x: selectedComponent.x, y: selectedComponent.y + (selectedComponent.length * gridSize) },
+        { x: selectedComponent.x + (selectedComponent.width * gridSize), 
+          y: selectedComponent.y + (selectedComponent.length * gridSize) }
+      ];
+
+      handles.forEach(handle => {
+        ctx.fillStyle = "#2196F3";
+        ctx.fillRect(
+          handle.x - handleSize/2,
+          handle.y - handleSize/2,
+          handleSize,
+          handleSize
+        );
+      });
+
+      ctx.restore();
+    }
+  }, [rooms, selectedRoom, dimensions, rotation, showPlot, components, selectedComponent]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget;
@@ -114,9 +146,19 @@ export const RoomCanvas = ({
     const y = e.clientY - rect.top - padding;
     const gridSize = 20;
 
+    if (selectedComponent) {
+      const handle = isOverResizeHandle(x, y, selectedComponent, gridSize);
+      if (handle) {
+        setIsResizing(true);
+        setResizeHandle(handle);
+        return;
+      }
+    }
+
     const clickedComponent = findClickedComponent({ components, x, y, gridSize });
 
     if (clickedComponent) {
+      setSelectedComponent(clickedComponent);
       draggedComponentRef.current = {
         component: clickedComponent,
         offsetX: x - clickedComponent.x,
@@ -125,16 +167,8 @@ export const RoomCanvas = ({
         initialY: clickedComponent.y
       };
       canvas.style.cursor = 'move';
-      
-      // Visual feedback for component selection
-      const ghost = document.createElement('div');
-      ghost.className = 'fixed pointer-events-none border-2 border-blue-500 bg-blue-100/20 transition-all duration-75';
-      ghost.style.width = `${clickedComponent.width * gridSize}px`;
-      ghost.style.height = `${clickedComponent.length * gridSize}px`;
-      ghost.style.transform = `translate(${clickedComponent.x}px, ${clickedComponent.y}px)`;
-      ghost.id = 'component-ghost';
-      document.body.appendChild(ghost);
     } else {
+      setSelectedComponent(null);
       onMouseDown(e);
     }
   };
@@ -146,6 +180,26 @@ export const RoomCanvas = ({
     const x = e.clientX - rect.left - padding;
     const y = e.clientY - rect.top - padding;
     const gridSize = 20;
+
+    if (isResizing && selectedComponent && resizeHandle && onComponentResize) {
+      const { width, length } = calculateNewDimensions(
+        selectedComponent,
+        resizeHandle,
+        x,
+        y,
+        gridSize
+      );
+
+      // Validate new dimensions
+      if (
+        width > 0 && length > 0 &&
+        width * gridSize <= dimensions.width * gridSize &&
+        length * gridSize <= dimensions.length * gridSize
+      ) {
+        onComponentResize(selectedComponent, width, length);
+      }
+      return;
+    }
 
     if (draggedComponentRef.current && onComponentMove) {
       const { component, offsetX, offsetY } = draggedComponentRef.current;
@@ -161,95 +215,60 @@ export const RoomCanvas = ({
       const constrainedX = Math.max(0, Math.min(newX, maxX));
       const constrainedY = Math.max(0, Math.min(newY, maxY));
 
-      // Update ghost position
-      const ghost = document.getElementById('component-ghost');
-      if (ghost) {
-        ghost.style.transform = `translate(${constrainedX}px, ${constrainedY}px)`;
-      }
-
-      // Check for collision with other components
-      const hasCollision = components.some(other => {
-        if (other.id === component.id) return false;
-        
-        return !(
-          constrainedX + (component.width * gridSize) <= other.x ||
-          constrainedX >= other.x + (other.width * gridSize) ||
-          constrainedY + (component.length * gridSize) <= other.y ||
-          constrainedY >= other.y + (other.length * gridSize)
-        );
-      });
-
-      if (!hasCollision) {
+      // Validate move
+      if (isValidDropPosition(
+        constrainedX,
+        constrainedY,
+        component.width * gridSize,
+        component.length * gridSize,
+        components,
+        component
+      )) {
         onComponentMove(component, constrainedX, constrainedY);
       }
-      return;
     }
 
-    const hoveredRoom = rooms.find(room => {
-      const roomX = room.x * gridSize;
-      const roomY = room.y * gridSize;
-      const roomWidth = room.width * gridSize;
-      const roomLength = room.length * gridSize;
-      
-      return x >= roomX && x <= roomX + roomWidth && 
-             y >= roomY && y <= roomY + roomLength;
-    });
-
-    if (hoveredRoom && selectedRoom?.id === hoveredRoom.id) {
-      if (isOverRoomHandle(x, y, hoveredRoom)) {
-        canvas.style.cursor = 'nwse-resize';
-      } else {
-        canvas.style.cursor = 'move';
+    // Update cursor based on hover
+    if (selectedComponent) {
+      const handle = isOverResizeHandle(x, y, selectedComponent, gridSize);
+      if (handle) {
+        canvas.style.cursor = handle === 'bottomRight' || handle === 'topLeft' 
+          ? 'nwse-resize' 
+          : 'nesw-resize';
+        return;
       }
-    } else {
-      const hoveringComponent = findClickedComponent({ components, x, y, gridSize });
-      canvas.style.cursor = hoveringComponent ? 'move' : 'default';
     }
+
+    const hoveringComponent = findClickedComponent({ components, x, y, gridSize });
+    canvas.style.cursor = hoveringComponent ? 'move' : 'default';
 
     onMouseMove(e);
   };
 
-  const isOverRoomHandle = (x: number, y: number, room: Room): boolean => {
-    const gridSize = 20;
-    const handleSize = 8;
-    const roomX = room.x * gridSize;
-    const roomY = room.y * gridSize;
-    const roomWidth = room.width * gridSize;
-    const roomLength = room.length * gridSize;
+  const handleMouseUp = () => {
+    const wasDragging = draggedComponentRef.current !== null;
+    const wasResizing = isResizing;
 
-    const nearRight = Math.abs(x - (roomX + roomWidth)) <= handleSize;
-    const nearBottom = Math.abs(y - (roomY + roomLength)) <= handleSize;
-    const nearLeft = Math.abs(x - roomX) <= handleSize;
-    const nearTop = Math.abs(y - roomY) <= handleSize;
-
-    return (nearRight && (nearTop || nearBottom)) || 
-           (nearLeft && (nearTop || nearBottom)) ||
-           (nearRight && y >= roomY && y <= roomY + roomLength) ||
-           (nearLeft && y >= roomY && y <= roomY + roomLength) ||
-           (nearTop && x >= roomX && x <= roomX + roomWidth) ||
-           (nearBottom && x >= roomX && x <= roomX + roomWidth);
-  };
-
-  const cleanupDrag = () => {
-    const ghost = document.getElementById('component-ghost');
-    if (ghost) {
-      ghost.remove();
-    }
-    
-    if (draggedComponentRef.current) {
+    if (wasDragging && draggedComponentRef.current) {
       const { component, initialX, initialY } = draggedComponentRef.current;
-      const currentX = component.x;
-      const currentY = component.y;
-      
-      if (currentX !== initialX || currentY !== initialY) {
+      if (component.x !== initialX || component.y !== initialY) {
         toast({
           title: "Component Moved",
-          description: `${component.type} moved to (${currentX}, ${currentY})`,
+          description: `${component.type} moved to (${component.x}, ${component.y})`,
         });
       }
     }
-    
+
+    if (wasResizing) {
+      toast({
+        title: "Component Resized",
+        description: "Component dimensions updated",
+      });
+    }
+
     draggedComponentRef.current = null;
+    setIsResizing(false);
+    setResizeHandle(null);
   };
 
   return (
@@ -262,14 +281,12 @@ export const RoomCanvas = ({
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onMouseUp={(e) => {
-        e.currentTarget.style.cursor = 'default';
-        cleanupDrag();
+      onMouseUp={() => {
+        handleMouseUp();
         onMouseUp();
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.cursor = 'default';
-        cleanupDrag();
+        handleMouseUp();
         onMouseLeave();
       }}
     />
