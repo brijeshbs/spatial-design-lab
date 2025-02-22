@@ -20,6 +20,7 @@ interface CanvasAreaProps {
   onComponentAdd?: (component: Component) => void;
   onComponentMove?: (component: Component, newX: number, newY: number) => void;
   onComponentResize?: (component: Component, newWidth: number, newLength: number) => void;
+  onComponentDelete?: (component: Component) => void;
 }
 
 export const CanvasArea = ({
@@ -35,6 +36,7 @@ export const CanvasArea = ({
   onComponentAdd,
   onComponentMove,
   onComponentResize,
+  onComponentDelete,
 }: CanvasAreaProps) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -118,6 +120,7 @@ export const CanvasArea = ({
               components={localComponents}
               onComponentMove={onComponentMove}
               onComponentResize={onComponentResize}
+              onComponentDelete={onComponentDelete}
             />
           </div>
           <DragDropHandler

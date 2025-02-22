@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { LeftSidebar } from "@/components/playground/LeftSidebar";
@@ -49,66 +50,12 @@ const Playground = () => {
     );
   };
 
-  const findValidPosition = (
-    room: { width: number; length: number },
-    existingRooms: Room[],
-    plotDimensions: { width: number; length: number },
-    maxAttempts: number = 50
-  ): { x: number; y: number } | null => {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      // Generate random position within plot boundaries
-      const x = Math.floor(Math.random() * (plotDimensions.width - room.width));
-      const y = Math.floor(Math.random() * (plotDimensions.length - room.length));
-
-      // Check if this position overlaps with any existing room
-      const hasOverlap = existingRooms.some(existingRoom => {
-        return !(
-          x + room.width <= existingRoom.x ||
-          x >= existingRoom.x + existingRoom.width ||
-          y + room.length <= existingRoom.y ||
-          y >= existingRoom.y + existingRoom.length
-        );
-      });
-
-      if (!hasOverlap) {
-        return { x, y };
-      }
-    }
-    return null; // Could not find valid position
-  };
-
-  const generateInitialLayout = ({ width, length, roomTypes }: { width: number; length: number; roomTypes: string[] }) => {
-    setDimensions({ width, length });
-    const newRooms: Room[] = [];
-
-    roomTypes.forEach((type) => {
-      const defaultSize = ROOM_TYPES[type as keyof typeof ROOM_TYPES];
-      const room = {
-        id: Math.random().toString(36).substr(2, 9),
-        type,
-        width: defaultSize.width,
-        length: defaultSize.length,
-        x: 0,
-        y: 0,
-      };
-
-      const position = findValidPosition(room, newRooms, { width, length });
-      
-      if (position) {
-        room.x = position.x;
-        room.y = position.y;
-        newRooms.push(room);
-      } else {
-        toast({
-          title: "Room Placement Failed",
-          description: `Could not find valid position for ${type}. Try adjusting plot size or removing some rooms.`,
-          variant: "destructive",
-        });
-      }
+  const handleComponentDelete = (component: Component) => {
+    setComponents(prev => prev.filter(c => c.id !== component.id));
+    toast({
+      title: "Component Deleted",
+      description: `${component.type} has been removed`,
     });
-
-    setRooms(newRooms);
-    setShowPlot(true);
   };
 
   return (
@@ -126,6 +73,7 @@ const Playground = () => {
         onComponentAdd={handleComponentAdd}
         onComponentMove={handleComponentMove}
         onComponentResize={handleComponentResize}
+        onComponentDelete={handleComponentDelete}
       />
 
       <LeftSidebar

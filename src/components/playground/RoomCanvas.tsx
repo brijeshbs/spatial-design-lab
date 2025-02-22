@@ -19,6 +19,7 @@ interface RoomCanvasProps {
   components: Component[];
   onComponentMove?: (component: Component, newX: number, newY: number) => void;
   onComponentResize?: (component: Component, newWidth: number, newLength: number) => void;
+  onComponentDelete?: (component: Component) => void;
 }
 
 export const RoomCanvas = ({
@@ -34,6 +35,7 @@ export const RoomCanvas = ({
   components,
   onComponentMove,
   onComponentResize,
+  onComponentDelete,
 }: RoomCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedComponent, setSelectedComponent] = useState<Component | null>(null);
@@ -46,6 +48,18 @@ export const RoomCanvas = ({
     initialX: number;
     initialY: number;
   } | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedComponent && onComponentDelete) {
+        onComponentDelete(selectedComponent);
+        setSelectedComponent(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedComponent, onComponentDelete]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
