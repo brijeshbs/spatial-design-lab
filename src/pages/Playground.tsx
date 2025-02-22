@@ -6,15 +6,16 @@ import { RightSidebar } from "@/components/playground/RightSidebar";
 import { CanvasArea } from "@/components/playground/CanvasArea";
 import { useRoomManagement } from "@/hooks/useRoomManagement";
 import type { Room, Component } from "@/components/playground/types";
-import { ROOM_TYPES } from "@/components/playground/constants";
 
 const Playground = () => {
+  // State declarations
   const [dimensions, setDimensions] = useState({ width: 30, length: 40 });
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [showPlot, setShowPlot] = useState(false);
   const [components, setComponents] = useState<Component[]>([]);
 
+  // Room management hook
   const {
     rooms,
     setRooms,
@@ -26,7 +27,8 @@ const Playground = () => {
     handleRoomUpdate,
   } = useRoomManagement(dimensions);
 
-  const generateInitialLayout = (params: { width: number; length: number; roomTypes: string[] }) => {
+  // Function declarations
+  function generateInitialLayout(params: { width: number; length: number; roomTypes: string[] }) {
     setDimensions({ width: params.width, length: params.length });
     
     // Create initial rooms based on selected room types
@@ -48,13 +50,13 @@ const Playground = () => {
       title: "Layout Generated",
       description: `Created layout with ${params.roomTypes.length} rooms`,
     });
-  };
+  }
 
-  const handleComponentAdd = (component: Component) => {
+  function handleComponentAdd(component: Component) {
     setComponents(prev => [...prev, component]);
-  };
+  }
 
-  const handleComponentMove = (component: Component, newX: number, newY: number) => {
+  function handleComponentMove(component: Component, newX: number, newY: number) {
     setComponents(prev => 
       prev.map(c => 
         c.id === component.id 
@@ -62,9 +64,9 @@ const Playground = () => {
           : c
       )
     );
-  };
+  }
 
-  const handleComponentResize = (component: Component, newWidth: number, newLength: number) => {
+  function handleComponentResize(component: Component, newWidth: number, newLength: number) {
     setComponents(prev => 
       prev.map(c => 
         c.id === component.id 
@@ -72,15 +74,15 @@ const Playground = () => {
           : c
       )
     );
-  };
+  }
 
-  const handleComponentDelete = (component: Component) => {
+  function handleComponentDelete(component: Component) {
     setComponents(prev => prev.filter(c => c.id !== component.id));
     toast({
       title: "Component Deleted",
       description: `${component.type} has been removed`,
     });
-  };
+  }
 
   return (
     <div className="absolute inset-0 overflow-visible">
