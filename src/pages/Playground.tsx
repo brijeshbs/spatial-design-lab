@@ -26,6 +26,30 @@ const Playground = () => {
     handleRoomUpdate,
   } = useRoomManagement(dimensions);
 
+  const generateInitialLayout = (params: { width: number; length: number; roomTypes: string[] }) => {
+    setDimensions({ width: params.width, length: params.length });
+    
+    // Create initial rooms based on selected room types
+    const initialRooms: Room[] = params.roomTypes.map((type, index) => ({
+      id: `room-${index}`,
+      type,
+      width: Math.floor(params.width / 2),
+      length: Math.floor(params.length / 2),
+      x: 0,
+      y: 0
+    }));
+
+    setRooms(initialRooms);
+    if (initialRooms.length > 0) {
+      setSelectedRoom(initialRooms[0]);
+    }
+
+    toast({
+      title: "Layout Generated",
+      description: `Created layout with ${params.roomTypes.length} rooms`,
+    });
+  };
+
   const handleComponentAdd = (component: Component) => {
     setComponents(prev => [...prev, component]);
   };
